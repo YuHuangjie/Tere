@@ -193,8 +193,12 @@ int OBJRender::render()
 			glBindTexture(GL_TEXTURE_2D, rgb);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, attrib.width_H, attrib.height_H,
-				0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+			glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, attrib.width_H, attrib.height_H);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, attrib.width_H, attrib.height_H,
+				GL_RGB, GL_UNSIGNED_BYTE, buf
+			);
+			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, attrib.width_H, attrib.height_H,
+			//	0, GL_RGB, GL_UNSIGNED_BYTE, buf);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			// render to rgbd texture
@@ -293,7 +297,11 @@ GLuint OBJRender::RenderRGBD(int id, GLuint rgb, unsigned int width, unsigned in
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName[0]);
 	
 	glBindTexture(GL_TEXTURE_2D, rgbd);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height,
+		GL_RGBA, GL_UNSIGNED_BYTE, 0
+	);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 #ifdef GL
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);

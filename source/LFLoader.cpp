@@ -223,8 +223,12 @@ void LFLoader::PostDecompress(void)
 		glBindTexture(GL_TEXTURE_2D, light_field_attrib.light_field_tex[i]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width_L, image_height_L,
-			0, GL_RGB, GL_UNSIGNED_BYTE, rgb_buffer+i*image_width_L*image_height_L*3);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, image_width_L, image_height_L);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image_width_L, image_height_L,
+			GL_RGB, GL_UNSIGNED_BYTE, rgb_buffer + i*image_width_L*image_height_L * 3
+		);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width_L, image_height_L,
+		//	0, GL_RGB, GL_UNSIGNED_BYTE, rgb_buffer+i*image_width_L*image_height_L*3);
 	}
 
 	delete[] rgb_buffer;
