@@ -1,11 +1,21 @@
 #include "LFEngine.h"
+#include "Log.h"
 #include <chrono>
 #include <cstdlib>
 
+using std::chrono::seconds;
+using std::this_thread::sleep_for;
+
 LFEngine::LFEngine(const string &profile)
+	: gLFLoader(nullptr),
+	gOBJRender(nullptr),
+	gRenderCamera(),
+	fps(0),
+	frames(0),
+	ui(nullptr),
+	default_fbo(0)
 {
 	InitEngine(profile);
-	fps = 0;
 }
 
 LFEngine::~LFEngine(void)
@@ -18,41 +28,40 @@ LFEngine::~LFEngine(void)
 
 void LFEngine::InitEngine(const string &profile)
 {
+	if (profile.empty()) {
+		throw std::runtime_error("invalid profile file");
+	}
+
 	try {
-		// initialize light field loader
+		// Initialize light field loader
 		gLFLoader.reset(new LFLoader(profile));
 
-		// fetch light field configuaration
+		// Light field configuaration
 		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
 
-		// initialize obj renderer
+		// Initialize obj renderer
 		LOGI("ENGINE: preparing Renderer\n");
-		gOBJRender.reset(new OBJRender(attrib.obj_file,
-			attrib.width_H, attrib.height_H,
-			attrib.camera_mesh_name));
+		gOBJRender.reset(new OBJRender(attrib, attrib.width_H, attrib.height_H));
 
-		// set light field configuaration
-		LOGI("ENGINE: setting light field configuaration\n");
-		gOBJRender->SetLightFieldAttrib(attrib);
-
-		// read light field
+		// Read light field textures
 		LOGI("ENGINE: decompressing images\n");
-		gLFLoader->PreDecompress();
 		gLFLoader->Decompress(4);
 		LOGI("ENGINE: decompressing done\n");
-		gLFLoader->PostDecompress();
+		vector<GLuint> rgbs = gLFLoader->PostDecompress();
+
+		// Append depth channel to each texture
 		LOGI("ENGINE: generating RGBD textures\n");
-		gLFLoader->GenerateRGBDTexture(gOBJRender);
+		vector<GLuint> rgbds = gLFLoader->GenerateRGBDTextures(rgbs, gOBJRender);
 
-		// resetting light field configuration (light_field_tex changed)
-		LOGI("ENGINE: resetting light field configuaration\n");
-		gOBJRender->SetLightFieldAttrib(attrib);
+		// Transfer light field textures
+		gOBJRender->SetLightFieldTexs(rgbds);
+		glDeleteTextures(rgbs.size(), rgbs.data());
 
-		// set rendering camera
+		// Set rendering camera
 		LOGI("ENGINE: setting rendering camera\n");
-		glm::vec3 look_center = attrib.ref_camera_center;
 
-		float render_cam_r = gLFLoader->GetRefCameraRadius();
+		glm::vec3 look_center = attrib.ref_camera_center;
+		const float render_cam_r = attrib.ref_camera_radius;
 		glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
 			render_cam_r*sin(glm::pi<float>() / 2)*sin(0),
 			render_cam_r*cos(glm::pi<float>() / 2)) + look_center;
@@ -60,22 +69,21 @@ void LFEngine::InitEngine(const string &profile)
 		glm::vec3 lookat = (look_center - location) / glm::length(look_center - location);
 		glm::vec3 right = glm::cross(lookat, _up);
 		glm::vec3 up = glm::cross(right, lookat);
-		lookat = glm::normalize(lookat);
 		up = glm::normalize(up);
-		gRenderCamera.setParameter(location, lookat, up,
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetFOVW(),
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetFOVH(),
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetCx(),
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetCy(), 
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetWidth(), 
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetHeight());
 
-		// set up user interface
+		gRenderCamera.SetExtrinsic(Extrinsic(location, look_center, up));
+		gRenderCamera.SetIntrinsic(Intrinsic(
+			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetCx(),
+			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetCy(),
+			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetFx(),
+			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetFy()));
+
+		// Set up user interface
 		ui = new UserInterface(0, 0, up, look_center);
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());
-		exit(1);
+		std::abort();
 	}
 
 	LOGI("\n===============  ENGINE INITIALIZATION OK!  ================\n");
@@ -98,7 +106,7 @@ void LFEngine::VRFPS(void)
 {
 	while (gOBJRender)
 	{
-		std::this_thread::sleep_for(chrono::seconds(1));
+		sleep_for(seconds(1));
 		fps = frames;
 		frames = 0;
 	}
@@ -107,7 +115,15 @@ void LFEngine::VRFPS(void)
 void LFEngine::Resize(GLuint width, GLuint height)
 {
 	LOGD("Engine: screen: width: %d  height: %d\n", width, height);
-	gOBJRender->SetRenderRes(width, height);
+
+	LightFieldAttrib attrib = gLFLoader->GetLightFieldAttrib();
+	float aspect = glm::max(static_cast<float>(attrib.width_H) / width, 
+		static_cast<float>(attrib.height_H) / height);
+
+	glViewport(width / 2 - attrib.width_H / aspect / 2, 
+		height / 2 - attrib.height_H / aspect / 2,
+		attrib.width_H / aspect, attrib.height_H / aspect);
+
 	ui->SetResolution(width, height);
 }
 
@@ -125,11 +141,11 @@ void LFEngine::SetUI(int type, double sx, double sy)
 		break;
 	case 1:
 		ui->FingerDown(true, sx, sy);
-		gOBJRender->SetFlag(true);
+		gOBJRender->UseHighTexture(false);
 		break;
 	case 2:
 		ui->FingerDown(false, sx, sy);
-		gOBJRender->SetFlag(false);
+		gOBJRender->UseHighTexture(true);
 		break;
 	default:
 		throw runtime_error("Setting false UI type");
@@ -143,10 +159,7 @@ void LFEngine::SetLocationOfReferenceCamera(int id)
 		return;
 	}
 
-	RenderCamView &ref = gLFLoader->GetLightFieldAttrib().ref_cameras[id];
-	this->gRenderCamera.setParameter(ref.GetPosition(),	ref.GetLookAt(), ref.GetUp(), 
-		ref.GetFOVW(), ref.GetFOVH(), ref.GetCx(), ref.GetCy(), 
-		ref.GetWidth(),	ref.GetHeight());
+	gRenderCamera = gLFLoader->GetLightFieldAttrib().ref_cameras[id];
 }
 
 void LFEngine::SetZoomScale(float zoom_scale)
@@ -155,8 +168,10 @@ void LFEngine::SetZoomScale(float zoom_scale)
 		return;
 	}
 
-	glm::vec3 new_position = gRenderCamera.GetPosition() + (zoom_scale-1.0f) * gRenderCamera.GetLookAt();
-	gRenderCamera.setParameter(new_position, gRenderCamera.GetLookAt(), gRenderCamera.GetUp());
+	glm::vec3 new_position = gRenderCamera.GetPosition() - (zoom_scale - 1.0f) * gRenderCamera.GetDir();
+	gRenderCamera.SetExtrinsic(Extrinsic(new_position, 
+		gRenderCamera.GetPosition()-gRenderCamera.GetDir(), 
+		gRenderCamera.GetUp()));
 }
 
 bool LFEngine::GetScreenShot(unsigned char *buffer, int x, int y, int width, int height)

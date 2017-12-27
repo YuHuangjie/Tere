@@ -4,14 +4,16 @@
 #include <string>
 #include <memory>
 #include "LFLoader.h"
-#include "RenderCamView.h"
+#include "camera/Camera.h"
 #include "OBJRender.h"
 #include "UserInterface.h"
 
 class LFEngine
 {
 public:
-	LFEngine(const string &profile);
+	explicit LFEngine(const string &profile);
+	LFEngine(const LFEngine &) = delete;
+	LFEngine& operator=(const LFEngine&) = delete;
 	~LFEngine(void);
 
 	// Given current status, draw one frame
@@ -36,9 +38,6 @@ public:
 	void SetDefaultFBO(GLuint fbo = 0);
 	// Get framebuffer name
 	inline GLuint GetDefaultFBO(void) const { return default_fbo; }
-	// Selected cameras are cameras chosen to render current frame.
-	// Typically, this contains 12 cameras(4 direct and 8 indirect)
-	inline std::vector<int> GetSelectedCamera(void) { return gOBJRender->GetSelectedCamera(); }
 	// Extract a subregion of current frame buffer. 
 	// x and y specifies the lower left corner of this region, 
 	// width and height specifies the dimension of this region
@@ -55,7 +54,7 @@ private:
 	// Used for rendering
 	unique_ptr<OBJRender> gOBJRender;	
 	// Rendering camera object
-	RenderCamView gRenderCamera;		
+	Camera gRenderCamera;
 
 	int fps;    // frames per second
 	int frames; // frames drawn
@@ -65,4 +64,4 @@ private:
 };
 
 
-#endif
+#endif // LFENGINE_H

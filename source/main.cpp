@@ -5,17 +5,21 @@
 #include <iostream>
 #include "glm\gtx\string_cast.hpp"
 #include "LFEngine.h"
-#include "Shader.h"
+#include "common\Shader.h"
 
 namespace {
-	const int WINDOW_HEIGHT = 750;
+	const int WINDOW_WIDTH = 1024;
+	const int WINDOW_HEIGHT = 1024;
+
 	// light field engine  
 	LFEngine *myEngine = nullptr;
+
+	// main window
 	double mx, my;
 	GLFWwindow *gWindow;
-	const int WINDOW_WIDTH = 500;
 	float zoom_scale = 1.0f;
 
+	// screen shot window
 	GLFWwindow *screen_shot_window = nullptr;
 	unsigned char *screen_shot_buffer = nullptr;
 	bool need_screen_shot = false;
@@ -35,27 +39,17 @@ namespace {
 	void RenderMouseCallback(GLFWwindow *window, int button, int action, int mod);
 	void RenderCursorCallback(GLFWwindow *window, double xpos, double ypos);
 	void RenderScrollCallback(GLFWwindow *window, double xpos, double ypos);
+	void ResizeCallback(GLFWwindow *window, int width, int height);
 
 	// Visualize screen shot
 	void VisualizeScreenShot(unsigned char *buffer, int width, int height);
 }
 
-//void SetSequentRefCamera(LFEngine *engine)
-//{
-//	for (int i = 0; i != 80; ++i) {
-//		cout << i << endl;
-//		cout << engine->GetSelectedCamera()[0] << " " << engine->GetSelectedCamera()[1]
-//			<< " " << engine->GetSelectedCamera()[2] << " " << engine->GetSelectedCamera()[3] << endl;
-//		engine->SetLocationOfReferenceCamera(i);
-//		std::this_thread::sleep_for(std::chrono::seconds(2));
-//	}
-//}
-
 int main(int argc, char **argv)
 {
 	if (argc != 2) {
 		Usage();
-		exit(1);
+		return -1;
 	}
 
 	try {
@@ -63,12 +57,13 @@ int main(int argc, char **argv)
 
 		// initialize OpenGL
 		InitGLContext(WINDOW_WIDTH, WINDOW_HEIGHT);
+
 		// set window callbacks
 		SetGLCallbacks();
 
 		// set up render engine
 		myEngine = new LFEngine(profilePathName);
-		//myEngine->SetLocationOfReferenceCamera(0);
+		myEngine->SetLocationOfReferenceCamera(18);
 		myEngine->Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		myEngine->SetDefaultFBO(0);
 		myEngine->StartFPSThread();
@@ -92,20 +87,21 @@ int main(int argc, char **argv)
 					(int)screen_shot_width, (int)screen_shot_height);
 				VisualizeScreenShot(screen_shot_buffer, (int)screen_shot_width, (int)screen_shot_height);
 			}
-			if (!need_screen_shot) {
+			if (!need_screen_shot && screen_shot_buffer) {
 				delete[] screen_shot_buffer;
 				screen_shot_buffer = nullptr;
 			}
 
 			// glfw poll events
 			glfwPollEvents();
+
 		}
 
 		// release resource
 		delete myEngine;
 		myEngine = nullptr;
 	}
-	catch (runtime_error &e) {
+	catch (std::exception &e) {
 		cerr << "runtime error occured: " << e.what() << endl;
 		system("pause");
 	}
@@ -114,8 +110,7 @@ int main(int argc, char **argv)
 namespace {
 	void Usage(void)
 	{
-		cout << "Usage: " << endl << "\t"
-			<< "LumigraphRendering <profile>" << endl;
+		cout << "Usage:    " << "MultiviewRendering <profile>" << endl;
 	}
 
 	void InitGLContext(int width, int height)
@@ -125,8 +120,8 @@ namespace {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-		glfwWindowHint(GLFW_SAMPLES, 2);
-		gWindow = glfwCreateWindow(width, height, "Light Field Render", nullptr, nullptr);
+		glfwWindowHint(GLFW_SAMPLES, 1);
+		gWindow = glfwCreateWindow(width, height, "Multiview rendering", nullptr, nullptr);
 		glfwIconifyWindow(gWindow);
 		glfwMakeContextCurrent(gWindow);
 
@@ -147,6 +142,7 @@ namespace {
 		glfwSetMouseButtonCallback(gWindow, RenderMouseCallback);
 		glfwSetCursorPosCallback(gWindow, RenderCursorCallback);
 		glfwSetScrollCallback(gWindow, RenderScrollCallback);
+		glfwSetWindowSizeCallback(gWindow, ResizeCallback);
 	}
 
 	void RenderKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -178,6 +174,11 @@ namespace {
 			if (y < screen_shot_y) { std::swap(y, screen_shot_y); }
 			screen_shot_width = x - screen_shot_x;
 			screen_shot_height = y - screen_shot_y;
+
+			if (screen_shot_width == 0 || screen_shot_height == 0) {
+				return;
+			}
+
 			screen_shot_y = WINDOW_HEIGHT - screen_shot_y - screen_shot_height;
 			need_screen_shot = true;
 		}
@@ -193,6 +194,11 @@ namespace {
 		float scale_factor = 0.1f;
 		zoom_scale = 1 + (float)ypos * scale_factor;
 		myEngine->SetZoomScale(zoom_scale);
+	}
+
+	void ResizeCallback(GLFWwindow *window, int width, int height)
+	{
+		myEngine->Resize(width, height);
 	}
 
 	void VisualizeScreenShot(unsigned char *buffer, int width, int height)

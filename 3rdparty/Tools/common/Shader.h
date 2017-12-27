@@ -12,6 +12,9 @@ class Shader
 public:
 	unsigned int ID;
 
+	Shader() : ID(0) 
+	{}
+	
 	Shader(const string &vertex_code, const string &frag_code)
 	{
 		GLint Result = GL_FALSE;

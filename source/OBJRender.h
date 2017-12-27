@@ -2,12 +2,12 @@
 #define RENDER_H
 
 #include "Preprocess.h"
-#ifdef GL
+#if GL
 #include <GL/glew.h>
-#elif defined GL_ES3 && defined IOS
+#elif GL_ES3 && PLATFORM_IOS
 #include <OpenGLES/ES3/gl.h>
 #include <OpenGLES/ES3/glext.h>
-#elif defined GL_ES3 && defined __ANDROID__
+#elif GL_ES3 && PLATFORM_ANDROID
 #include <GLES3/gl3.h>
 #include <GLES2/gl2ext.h>
 #endif
@@ -16,76 +16,71 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include "tinyobj.h"
 #include <vector>
 #include <string>
 #include <thread>
 
 #include "LightFieldAttrib.h"
-#include "ClosestCamera.h"
 
-const int CLOSEST_CAMERA_NR = 4;
+using std::vector;
+using std::string;
+using glm::mat4;
+using glm::vec3;
+using glm::ivec4;
+
+class WeightedCamera
+{
+public:
+	WeightedCamera(int i, float w) : index(i), weight(w) {}
+
+	int index;
+	float weight;
+};
 
 class OBJRender
 {
 public:
-	OBJRender(std::string obj_name, int w, int h, 
-		std::string camera_mesh_name);
+	OBJRender(const LightFieldAttrib &, int fbWidth, int fbHeight);
+	OBJRender(const OBJRender &) = delete;
+	OBJRender& operator=(const OBJRender &) = delete;
 	~OBJRender();
 
 	// render method
 	int render();
 
 	// render depth maps
-	void RenderDepth(int id, unsigned char *pixels, unsigned width, unsigned height);
-	GLuint RenderRGBD(int id, GLuint rgb, unsigned int width, unsigned int height);
+	GLuint AppendDepth(GLuint rgb, unsigned int width, 
+		unsigned int height, const mat4 &VP, const mat4 &V);
+
+	// set light field texture
+	void SetLightFieldTexs(const vector<GLuint> &lfTexs);
 
 	// set virtual camera pose
-	void SetVirtualCamera(RenderCamView);
-	void SetMatrices(const glm::mat4 &_View, 
-		const glm::mat4 &_Projection, const glm::mat4 &_Model=glm::mat4(1.0));
-	void SetRenderLocation(const glm::vec3 &loc);
-	void SetLightFieldAttrib(const LightFieldAttrib&);
+	void SetVirtualCamera(const Camera &);
+
+	// set online frame buffer object
 	inline void SetDefaultFBO(GLuint fbo) { default_fbo = fbo; }
-	void SetRenderRes(GLuint width, GLuint height);
-
-	// get pointer of texture bound with tex
-	void GetTextureData(GLuint tex, unsigned char * image);
-	glm::vec3 GetSceneCenter(void);
-
-	// Transfer lookup table to OpenGL
-	void TransferLookupTableToGL(const std::vector<int> &table);
 
 	// indicate interaction is active
-	inline void SetFlag(bool interacting) { this->interacting = interacting; }
-
-	// get values stored in 'camera_set', 'ind_camera_set', 'dind_camera_set'
-	std::vector<int> GetSelectedCamera(void);
+	inline void UseHighTexture(bool flag) { useHighTexture = flag; }
 
 private:
-	void TransferMeshToGL(void);
-	void TransferRefCameraToGL(void);
-	glm::vec3 CalcObjCenter(void);
-	void LocateClosestCameras(void);
-	void LoadCameraMesh(const std::string &);
+	bool TransferMeshToGL(const string &meshFile);
+	bool TransferRefCameraToGL(const vector<mat4> &VP, const vector<mat4> V);
+	void SearchInterpCameras(void);
+	bool LoadCameraMesh(const string &);
 
 	// compile vertex, fragment shaders
 	GLuint LoadShaders(const char * vertex_code, const char * fragment_code);
 
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	glm::vec3 scene_center;			// center position of scene
+	int nMeshes;                      // number of objects
+	vector<size_t> indexSizes;   // index count in each object
+	
+	vec3 scene_center;			// center position of scene
 
-	GLuint *VertexArray;			// VAO
-	GLuint *vertexbuffers;
-	GLuint *normalbuffers;
-	GLuint *texelbuffers;
-	GLuint *elementbuffers;
-	GLuint lookup_table_buffer;		// SSBO for lookup table
-	GLuint ref_cam_MVP_buffer;		// SSBO for reference cameras' VP
-	GLuint ref_cam_MV_buffer;		// SSBO for reference cameras' V
-
-	int targetWidth, targetHeight;
+	vector<GLuint> vertexArrays;			// VAO
+	vector<GLuint> vertexBuffers;          // VBO
+	vector<GLuint> elementBuffers;         // EBO
 
 	// default framebuffer object
 	GLuint default_fbo;
@@ -94,56 +89,57 @@ private:
 	GLuint ref_cam_VP_texture;
 	GLuint ref_cam_V_texture;
 
-	/* attrib/uniform location */
-	GLuint ref_cam_VP_location;
-	GLuint ref_cam_V_location;
-	GLuint scene_program_id;
-	GLuint depth_program_id;
+	// 
+	static const int NUM_INTERP = 12;
+	static const int NUM_HIGH_INTERP = 4;
+
+	GLuint scene_program_id;    // shader for multi-view rendering
+	GLuint depth_program_id;    // shader for depth rendering
+
+	// attrib/uniform location
 	GLint scene_VP_id;
 	GLint depth_VP_id;
-	GLint depth_V_id;
 	GLuint depth_near_location;
 	GLuint depth_far_location;
 	GLuint scene_near_location;
 	GLuint scene_far_location;
 	GLuint N_REF_CAMERAS_location;
-	GLuint N_REF_CAMERAS_HIGH_location;
-	GLuint N_REF_CAMERAS_LOW_location;
-	GLuint WEIGHTS_location;
-	GLuint INDIRECT_WEIGHTS_location;
-	GLuint DINDIRECT_WEIGHTS_location;
-	GLuint CAMERAS_location;
-	GLuint DINDIRECT_CAMERAS_location;
-	GLuint INDIRECT_CAMERAS_location;
-	GLuint light_field_location[CLOSEST_CAMERA_NR];
-	GLuint T_light_field_location[CLOSEST_CAMERA_NR];
-	GLuint T2_light_field_location[CLOSEST_CAMERA_NR];
+	GLuint ref_cam_VP_location;
+	GLuint ref_cam_V_location;
+	GLuint nInterpsLocation;
+	GLuint interpIndicesLocation[NUM_INTERP];
+	GLuint interpWeightsLocation[NUM_INTERP];
+	GLuint lightFieldLocation[NUM_INTERP];
 
-	glm::mat4 Model;		// Model matrix
-	glm::mat4 View;			// View matrix
-	glm::mat4 Projection;	// Projection matrix
-	glm::vec3 render_camera_location;	// camera position
+	mat4 Model;		// Model matrix
+	mat4 View;			// View matrix
+	mat4 Projection;	// Projection matrix
 
-	RenderCamView virtual_camera;
+	Camera virtual_camera;  // virtual_camera;
 
-	GLuint FramebufferName[1];		// Frame buffer
-	GLuint renderedTexture[1];		// store depth image
-	GLuint depthrenderbuffer[1];	// opengl inner depth test
+	GLuint frameBuffer;		  // frame buffer for offline rendering
+	GLuint renderedTexture;   // texture buffer 
+	GLuint depthBuffer;	      // depth buffer
 
-	LightFieldAttrib attrib;
-	ClosestCameraSet camera_set;
-	ClosestCameraSet ind_camera_set;
-	ClosestCameraSet dind_camera_set;
-	std::vector<int> lookup_table;
-	std::vector<glm::vec3> ref_camera_dirs;
-	std::vector<float> ref_camera_dists;
-	std::vector<int> ref_camera_index;
+	LightFieldAttrib attrib;  // light field attribute
 
-	/* camera mesh info*/
-	std::vector< glm::vec3 > camera_vertices;
-	std::vector< glm::ivec4> camera_quads;
-	bool interacting;		// indicate whether user is interacting via mouse/finger
-	GLuint light_field_H[CLOSEST_CAMERA_NR];	// texture for high resolution images
+	// Camera mesh info
+	vector< vec3 > camera_vertices;   // camera mesh vertex
+	vector< ivec4> camera_quads;      // camera mesh indices
+
+	vector<WeightedCamera> interpCameras;  // interpolating cameras
+
+	vector<vec3> ref_camera_dirs;     // center points to each camera
+	vector<float> ref_camera_dists;   // distance between center and cameras
+	vector<int> ref_camera_index;     // camera sorted by angle distance
+	
+	// light field textures (typically low resolution)
+	vector<GLuint> lightFieldTexs;    
+	// light field textures (typically high resolution)
+	GLuint light_field_H[NUM_HIGH_INTERP];
+
+	// indicate using high or low resolution textures
+	bool useHighTexture;
 };
 
 

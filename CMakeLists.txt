@@ -1,12 +1,8 @@
 cmake_minimum_required (VERSION 3.9)
-project(LumigraphRendering)
+project(MultiviewRendering)
 
 ## User-settable variables
-set(GLEW_DIR "D:/Program\ Files/glew-2.0.0" CACHE PATH "root to glew")
-set(GLFW_DIR "D:/Program\ Files/glfw-3.2.1-64" CACHE PATH "root to glfw")
-set(GLM_DIR "D:/Program\ Files/glm" CACHE PATH "root to glm")
-set(JPEG_TURBO_DIR "D:/Program\ Files/libjpeg-turbo64" CACHE PATH "root to jpeg turbo")
-set(WEBP_DIR "D:/Program\ Files/libwebp-0.6.0-windows-x64" CACHE PATH "root to webp library")
+set(RENDER_TOOL_DIR "3rdparty/Tools" CACHE PATH "root to rendering tools")
 
 set(INCLUDE_DIRS)
 set(LIBRARY_DIRS)
@@ -26,15 +22,16 @@ endmacro()
 
 
 ## include
-declare_include_path("${GLEW_DIR}/include")
-declare_include_path("${GLM_DIR}")
-declare_include_path("${GLFW_DIR}/include")
+declare_include_path("3rdparty/glew/include")
+declare_include_path("3rdparty/glm")
+declare_include_path("3rdparty/glfw/include")
+declare_include_path("3rdparty/Tools")
 
 ## link path
-declare_link_path("${GLEW_DIR}/lib/Release/x64")
-declare_link_path("${GLFW_DIR}/lib-vc2015")
-declare_link_path("${JPEG_TURBO_DIR}/lib")
-declare_link_path("${WEBP_DIR}/lib")
+declare_link_path("3rdparty/glew/lib")
+declare_link_path("3rdparty/glfw/lib")
+declare_link_path("3rdparty/jpegturbo")
+declare_link_path("3rdparty/webp")
 
 ## libs
 declare_lib("glew32s")
@@ -47,19 +44,32 @@ declare_lib("libwebp")
 include_directories(${INCLUDE_DIRS})
 link_directories(${LIBRARY_DIRS})
 
+# preprocessor
+add_definitions(-DENABLE_TIMING=1)
+add_definitions(-DENABLE_LOG=1)
+
+if(MSVC)
+add_definitions(-D_CRT_SECURE_NO_WARNING)
+endif()
+
 add_executable(
-	LumigraphRendering 
-	source/ClosestCamera.cpp
-	source/DecodeJpeg.cpp
-	source/Decoder.cpp
-	source/DecodeWebp.cpp
+	MultiviewRendering 
+	${RENDER_TOOL_DIR}/camera/Camera.cpp
+	${RENDER_TOOL_DIR}/common/CommonIO.cpp
+	${RENDER_TOOL_DIR}/image/ImageIO.cpp
+	${RENDER_TOOL_DIR}/image/Image.cpp
+	${RENDER_TOOL_DIR}/image/ImageCodec.cpp
+	${RENDER_TOOL_DIR}/image/WebpCodec.cpp
+	${RENDER_TOOL_DIR}/image/JpegCodec.cpp
+	${RENDER_TOOL_DIR}/mesh/Geometry.cpp
+	${RENDER_TOOL_DIR}/mesh/tiny_obj_loader.cc
 	source/LFEngine.cpp
 	source/LFLoader.cpp
 	source/OBJRender.cpp
-	source/RenderCamView.cpp
-	source/tinyobj.cpp
 	source/UserInterface.cpp
 	source/main.cpp
 	)
 
-target_link_libraries(LumigraphRendering ${LIBRARIES})
+target_link_libraries(MultiviewRendering ${LIBRARIES})
+
+SUBDIRS(tools)

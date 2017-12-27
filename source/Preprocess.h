@@ -2,32 +2,22 @@
 
 /* OpenGL(ES) */
 #ifdef _WIN32
-	#define GL
+	#define GL 1
+    # define PLATFORM_WIN 1
 #elif __ANDROID__
-	#define GL_ES3
+	#define GL_ES3 1
+    #define PLATFORM_ANDROID 1
 #elif __APPLE__
 	#include "TargetConditionals.h"
 	#if TARGET_OS_IPHONE
-		#define GL_ES3
-		#define IOS
+		#define GL_ES3 1
+		#define PLATFORM_IOS 1
+        #define PLATFORM_IPHONE 1
 	#else
-		#error "Unknown platform"
+		#error "Mac not supported"
 	#endif
 #else
 	#error "Unknown platform"
-#endif
-
-/* LOG function */
-#if defined _WIN32 || defined __APPLE__
-#include <cstdio>
-#define LOGI(...) printf(__VA_ARGS__)
-#define LOGD(...) printf(__VA_ARGS__)
-#define LOGW(...) printf(__VA_ARGS__)
-#elif defined __ANDROID__
-#include <android/log.h>
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", __VA_ARGS__))
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "AndroidProject1.NativeActivity", __VA_ARGS__))
 #endif
 
 /* ANDROID flaw */

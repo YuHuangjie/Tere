@@ -1,12 +1,5 @@
-//
-//  UserInterface.cpp
-//  GLEssentials
-//
-//  Created by apchen on 2017/6/11.
-//  Copyright © 2017年 Dan Omachi. All rights reserved.
-//
-
 #include "UserInterface.h"
+#include "glm/gtx/transform.hpp"
 
 UserInterface::UserInterface(int sw, int sh, glm::vec3 last_up, glm::vec3 look_center)
     : PI(3.14159265f)
@@ -24,7 +17,7 @@ void UserInterface::FingerDown(bool finger_down, double x, double y)
     last_my = y;
 }
 
-void UserInterface::FingerMove(double x, double y, RenderCamView &view)
+void UserInterface::FingerMove(double x, double y, Camera &view)
 {
     if (!arcball_on) { return; }
     
@@ -50,13 +43,13 @@ void UserInterface::FingerMove(double x, double y, RenderCamView &view)
     lookat = glm::normalize(lookat);
     up = glm::normalize(up);
     last_up = up;
-    view.setParameter(location, lookat, up);
+	view.SetExtrinsic(Extrinsic(location, location + lookat, up));
     
     last_mx = cur_mx;
     last_my = cur_my;
 }
 
-glm::vec3 UserInterface::GetArcballVector(double x, double y, RenderCamView view)
+glm::vec3 UserInterface::GetArcballVector(double x, double y, Camera view)
 {
     glm::vec3 P(1.0 * x / screen_width * 2 - 1.0,
                 1.0 * y / screen_height * 2 - 1.0,
@@ -71,7 +64,7 @@ glm::vec3 UserInterface::GetArcballVector(double x, double y, RenderCamView view
         P = glm::normalize(P);
     }
     
-    P = view.GetRight() * P.x + view.GetUp() * P.y - view.GetLookAt() * P.z;
+	P = view.GetRight() * P.x + view.GetUp() * P.y + view.GetDir() * P.z;
     
     return P;
 }

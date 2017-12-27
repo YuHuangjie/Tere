@@ -2,19 +2,39 @@
 // Created by YuHuangjie on 6/14/2017.
 //
 
-#include "Preprocess.h"
-#include "Decoder.h"
-#include "webp/decode.h"
+#include "image/webp/decode.h"
+#include "common/Common.h"
 #include <fstream>
 #include <stdexcept>
+#include <string>
 
 using namespace std;
 
-bool DecompressWebp(std::string filename, unsigned char *buf, int width, int height)
+/**
+* Decompress a webp file.
+*
+* @param filename	The file name
+* @param buf[out]	Decoded byte array. Pixels are stored from bottom to top and
+*					from left to right (to be compatiable with OpenGL). Each
+*					pixel if stored in RGB format, where each component takes
+*					8 bits.
+*					The caller must allocate the memory.
+* @param bufsize	Size of buf (in bytes)
+* @param weight	Desired width of decoded image
+* @param height	Desired height of decoded image
+*
+* @return true if decompression succed, false otherwise
+*/
+bool DecodeWebp(const string &filename, unsigned char *buf, const unsigned int bufsize,
+	const unsigned int width, const unsigned int height)
 {
     if (buf == nullptr) {
         return false;
     }
+	if (bufsize < width * height * 3) {
+		string errormsg = string("!![Error] DecodeWebp: too small buf size: ") + TO_STRING(bufsize);
+		throw invalid_argument(errormsg);
+	}
 
     // open image file
     ifstream in_file(filename, fstream::binary);
@@ -22,7 +42,8 @@ bool DecompressWebp(std::string filename, unsigned char *buf, int width, int hei
     unsigned char *webp_buf = nullptr;
 
     if (!in_file.is_open()) {
-        throw runtime_error("open image_file failed");
+		string errormsg = string("!![Error] DecodeWebp: open image_file failed: ") + filename;
+		throw invalid_argument(errormsg);
     }
 
     // read raw image data into memory
@@ -53,7 +74,7 @@ bool DecompressWebp(std::string filename, unsigned char *buf, int width, int hei
     if (WebPDecode(webp_buf, webp_size, &config) != VP8_STATUS_OK) {
         delete[] webp_buf;
         webp_buf = nullptr;
-        throw runtime_error("WebPDecode failed");
+        throw runtime_error("!![Error] DecodeWebp: WebPDecode failed: unknown reason");
     }
     delete[] webp_buf;
     webp_buf = nullptr;
