@@ -1,1 +1,2 @@
 SUBDIRS(RearrangeMesh)
+SUBDIRS(Scale)

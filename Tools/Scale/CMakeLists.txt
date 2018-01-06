@@ -2,7 +2,7 @@
 # RearrangeMesh (Tool)
 ###############################################################################
 
-project(RearrangeMesh)
+project(Scale)
 
 # Require glm
 if(WIN32 AND EXISTS "${DEPENDS_DIR}/glm")
@@ -17,12 +17,15 @@ if (NOT GLM_FOUND)
 endif()
 
 include_directories(${GLM_INCLUDE_DIRS})
+include_directories("${CMAKE_SOURCE_DIR}/TereMain/include")
 
 add_executable(
-	RearrangeMesh 
+	Scale 
 	main.cpp
+	ObjIO.cpp
+	LFLoader.cpp
 	)
 
-# install tools
-install(TARGETS RearrangeMesh
+# install Scale
+install(TARGETS Scale 
 	RUNTIME DESTINATION "bin")
