@@ -41,10 +41,8 @@ public:
 	void LoadProfile(const string &profile_prefix, 
 		const map<string, string> &profile);
 
-	vector<GLuint> PostDecompress(void);
 	void Decompress(const int no_thread);
-	vector<GLuint> GenerateRGBDTextures(const vector<GLuint> &rgbs,
-		const unique_ptr<OBJRender> &renderer);
+	vector<GLuint> GenerateRGBDTextures(const unique_ptr<OBJRender> &);
 
 	inline LightFieldAttrib& GetLightFieldAttrib(void) { 
 		return attrib;

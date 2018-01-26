@@ -34,6 +34,8 @@ inline Image ImageIO::Read(const std::string &filename, const unsigned int w, co
 	bool status = DecodeImage(filename, buf, bufsize, width, height);
 
 	if (!status) {
+		delete[] buf;
+		buf = nullptr;
 		return Image();
 	}
 	else {

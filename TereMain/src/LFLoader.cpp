@@ -182,32 +182,6 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 	else { throw runtime_error("no camera_mesh file found"); }
 }
 
-vector<GLuint> LFLoader::PostDecompress(void)
-{
-	/* Generate textures */
-	int image_num = attrib.N_REF_CAMERAS;
-	int texture_width = attrib.width_L;
-	int texture_height = attrib.height_L;
-	vector<GLuint> light_field_tex(image_num, 0);
-
-	glGenTextures(image_num, light_field_tex.data()); 
-
-	for (int i = 0; i != image_num; ++i) {
-		glBindTexture(GL_TEXTURE_2D, light_field_tex[i]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, texture_width, texture_height);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width, texture_height, 
-			GL_RGB, GL_UNSIGNED_BYTE, 
-			rgbBuffer.data() + i*texture_width*texture_height * 3);
-	}
-
-	// clean image buffer
-	rgbBuffer.clear();
-
-	return light_field_tex;
-}
-
 void LFLoader::OnDecompressing(const int thread_id, const int thread_nr)
 {
 	int image_num = attrib.N_REF_CAMERAS;
@@ -248,22 +222,48 @@ void LFLoader::Decompress(const int no_thread)
 	}
 }
 
-vector<GLuint> LFLoader::GenerateRGBDTextures(const vector<GLuint> &rgbs,
-	const unique_ptr<OBJRender> &renderer)
+vector<GLuint> LFLoader::GenerateRGBDTextures(const unique_ptr<OBJRender> &renderer)
 {
 	int image_num = attrib.N_REF_CAMERAS;
-	vector<GLuint> rgbds(image_num, 0);
+	int texture_width = attrib.width_L;
+	int texture_height = attrib.height_L;
+	vector<GLuint> light_field_tex(image_num, 0);
+
+	glGenTextures(image_num, light_field_tex.data());
 
 	for (int i = 0; i != image_num; ++i) {
-		// generate RGBD textures
-		GLuint rgbd = renderer->AppendDepth(rgbs[i],
-			attrib.width_L, attrib.height_L,
+		// upload RGB image
+		GLuint rgb = 0;
+		glGenTextures(1, &rgb);
+		glBindTexture(GL_TEXTURE_2D, rgb);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, texture_width, texture_height);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width, texture_height,
+			GL_RGB, GL_UNSIGNED_BYTE,
+			rgbBuffer.data() + i*texture_width*texture_height * 3);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// append depth channel to RGB texture
+		GLuint rgbd = renderer->AppendDepth(rgb,
+			texture_width, texture_height,
 			attrib.ref_cameras_VP[i], 
 			attrib.ref_cameras_V[i]);
 		
-		// replace old texture
-		rgbds[i] = rgbd;
+		light_field_tex[i] = rgbd;
+
+		// delete rgb texture
+		glDeleteTextures(1, &rgb);
+
+		// glTexSubImage2D allocate CPU memory and copy the user's data into it.
+		// That increase much memory misallocating. An approch is to synchronize
+		// the texture uploading process.
+		// \cite{https://www.khronos.org/opengl/wiki/Synchronization}.
+		glFinish();
 	}
 
-	return rgbds;
+	// Clear CPU image memory
+	rgbBuffer = vector<uint8_t>();
+
+	return light_field_tex;
 }

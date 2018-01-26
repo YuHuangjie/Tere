@@ -2,6 +2,7 @@
 #define EXTRINSIC_H
 
 #include <glm/glm.hpp>
+#include <stdexcept>
 
 class Extrinsic
 {
@@ -16,6 +17,7 @@ public:
 		const glm::vec3 dir = pos - target;
 		// Perpendiclar condition
 		if (glm::dot(dir, up) > 1e-5) {
+			throw std::invalid_argument("dir not perpendicular to up");
 			return;
 		}
 

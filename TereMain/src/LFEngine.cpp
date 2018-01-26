@@ -46,15 +46,14 @@ void LFEngine::InitEngine(const string &profile)
 		LOGI("ENGINE: decompressing images\n");
 		gLFLoader->Decompress(4);
 		LOGI("ENGINE: decompressing done\n");
-		vector<GLuint> rgbs = gLFLoader->PostDecompress();
 
 		// Append depth channel to each texture
 		LOGI("ENGINE: generating RGBD textures\n");
-		vector<GLuint> rgbds = gLFLoader->GenerateRGBDTextures(rgbs, gOBJRender);
+		vector<GLuint> rgbds = gLFLoader->GenerateRGBDTextures(gOBJRender);
 
 		// Transfer light field textures
 		gOBJRender->SetLightFieldTexs(rgbds);
-		glDeleteTextures(rgbs.size(), rgbs.data());
+		//glDeleteTextures(rgbs.size(), rgbs.data());
 
 		// Set rendering camera
 		LOGI("ENGINE: setting rendering camera\n");

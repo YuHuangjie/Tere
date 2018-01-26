@@ -51,6 +51,7 @@ inline bool DecodeWebp(const string &filename, unsigned char *buf, const unsigne
     in_file.seekg(0, fstream::beg);
     webp_buf = new unsigned char[webp_size];
     in_file.read(reinterpret_cast<char*>(webp_buf), webp_size);
+	in_file.close();
 
     // decode
     WebPDecoderConfig config;
@@ -77,6 +78,7 @@ inline bool DecodeWebp(const string &filename, unsigned char *buf, const unsigne
     }
     delete[] webp_buf;
     webp_buf = nullptr;
+	WebPFreeDecBuffer(&config.output);
 
     return true;
 }

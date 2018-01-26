@@ -51,6 +51,7 @@ inline bool DecodeJpeg(const string &filename, unsigned char *buf, const unsigne
     in_file.seekg(0, fstream::beg);
     jpeg_buf = new unsigned char[jpeg_size];
     in_file.read(reinterpret_cast<char*>(jpeg_buf), jpeg_size);
+	in_file.close();
 
     tjhandle decompressor = tjInitDecompress();
     int result = tjDecompress2(decompressor, jpeg_buf, jpeg_size,
@@ -93,6 +94,7 @@ inline bool DecodeJpegHeader(const string &filename, unsigned int &width, unsign
 	in_file.seekg(0, fstream::beg);
 	jpeg_buf = new unsigned char[jpeg_size];
 	in_file.read(reinterpret_cast<char*>(jpeg_buf), jpeg_size);
+	in_file.close();
 
 	tjhandle decompressor = tjInitDecompress();
 	int _width = 0;

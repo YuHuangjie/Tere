@@ -202,7 +202,9 @@ namespace {
 
 	void ResizeCallback(GLFWwindow *window, int width, int height)
 	{
-		myEngine->Resize(width, height);
+		if (width != 0 && height != 0) {
+			myEngine->Resize(width, height);
+		}
 	}
 
 	void VisualizeScreenShot(unsigned char *buffer, int width, int height)
