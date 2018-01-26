@@ -61,63 +61,10 @@ LFLoader::LFLoader(const string &profileFile)
 void LFLoader::LoadProfile(const string &profile_prefix,
 	const map<string, string> &profile)
 {
-	// read image list
-	auto search = profile.find("image_list");
-	string image_list_file = "";
-	if (search != profile.end()) { image_list_file = profile_prefix + search->second; }
-	else {	throw runtime_error("no image_list found in profile"); }
-
-	CommonIO::ReadList(image_list_file, attrib.image_list, true);
-
-	// read image size
-	search = profile.find("width_H");
-	if (search != profile.end()) { 
-		attrib.width_H = atoi((search->second).c_str()); 
-	}
-	else { throw runtime_error("no width_H found in profile"); }
-
-	search = profile.find("height_H");
-	if (search != profile.end()) { 
-		attrib.height_H = atoi((search->second).c_str()); 
-	}
-	else { throw runtime_error("no height_H found in profile"); }
-
-	search = profile.find("width_L");
-	if (search != profile.end()) { 
-		attrib.width_L = atoi((search->second).c_str());
-	}
-	else { throw runtime_error("no width_L found in profile"); }
-
-	search = profile.find("height_L");
-	if (search != profile.end()) { 
-		attrib.height_L = atoi((search->second).c_str());
-	}
-	else { throw runtime_error("no height_L found in profile"); }
-
-	// read light field constants
-	search = profile.find("N_REF_CAMERAS");
-	if (search != profile.end()) { 
-		attrib.N_REF_CAMERAS = atoi(search->second.c_str());
-	}
-	else { throw runtime_error("no N_REF_CAMERAS found in profile"); }
-
-	/* read near, far */
-	search = profile.find("near");
-	if (search != profile.end()) {
-		attrib.glnear = (float)atof(search->second.c_str());
-	}
-	else { throw runtime_error("no near found in profile"); }
-
-	search = profile.find("far");
-	if (search != profile.end()) {
-		attrib.glfar = (float)atof(search->second.c_str());
-	}
-	else { throw runtime_error("no far found in profile"); }
-
 	// read reference cameras
 	string pose_filename = "";
 	string K_filename = "";
-	search = profile.find("camera_pose");
+	auto search = profile.find("camera_pose");
 	if (search != profile.end()) { 
 		pose_filename = profile_prefix + search->second; }
 	else { throw runtime_error("no camera_pose found in profile"); 
@@ -143,28 +90,6 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 				attrib.glfar) * refcamera.GetViewMatrix());
 	}
 
-	// read reference camera center and radius
-	search = profile.find("camera_center");
-	if (search != profile.end()) {
-		glm::vec3 center;
-		istringstream iss(search->second);
-		iss >> center.x >> center.y	>> center.z;
-		attrib.ref_camera_center = center;
-	}
-	else { throw runtime_error("no camera_center found in profile"); }
-
-	search = profile.find("camera_radius");
-	if (search != profile.end()) {
-		istringstream iss(search->second);
-		iss >> attrib.ref_camera_radius;
-	}
-	else { throw runtime_error("no camera_radius found in profile"); }
-
-	// check light field configuration is consistent
-	if (attrib.ref_cameras.size() != attrib.N_REF_CAMERAS) {
-		throw runtime_error("light field configration is inconsistent");
-	}
-
 	/* read obj name */
 	search = profile.find("obj");
 	if (search != profile.end()) { 
@@ -177,5 +102,5 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 	if (search != profile.end()) { 
 		attrib.camera_mesh_name = profile_prefix + search->second; 
 	}
-	else { throw runtime_error("no camera_mesh file found"); }
+	else { std::cout << "no camera_mesh file found" << std::endl; }
 }

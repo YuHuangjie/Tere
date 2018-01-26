@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
 
 	// Ask for scale
 	do {
-		string sHeight;
-		cout << "Desired height [default 1.0]: ";
+		string sHeight = "1.0";
+		cout << "Desired height [recommend 1.0]: ";
 		cin >> sHeight;
 		try {
 			height = std::stof(sHeight);
@@ -56,9 +56,13 @@ int main(int argc, char *argv[])
 		// Read profile
 		LFLoader loader(profileName);
 		LightFieldAttrib attrib = loader.GetLightFieldAttrib();
+		bool newCameraMesh = !attrib.camera_mesh_name.empty();
 
 		Mesh object = ObjIO::ReadMesh(attrib.obj_file);
-		Mesh cameraMesh = ObjIO::ReadMesh(attrib.camera_mesh_name);
+		Mesh cameraMesh;
+		if (newCameraMesh) {
+			cameraMesh = ObjIO::ReadMesh(attrib.camera_mesh_name);
+		}
 		vector<Camera> cameras = attrib.ref_cameras;
 		vector<Extrinsic> extrinsics;
 
@@ -95,9 +99,11 @@ int main(int argc, char *argv[])
 		}
 
 		// Compute new camera mesh
-		for (vector<glm::vec3>::iterator it = cameraMesh.v.begin();
-			it != cameraMesh.v.end(); ++it) {
-			*it = glm::vec3(transform * glm::vec4(*it, 1.0f));
+		if (newCameraMesh) {
+			for (vector<glm::vec3>::iterator it = cameraMesh.v.begin();
+				it != cameraMesh.v.end(); ++it) {
+				*it = glm::vec3(transform * glm::vec4(*it, 1.0f));
+			}
 		}
 
 		// Compute new extrinsics
@@ -110,7 +116,10 @@ int main(int argc, char *argv[])
 		// Write object, camera mesh and extrinsics
 		CommonIO::WriteExtrinsic(outExtrinsics, extrinsics);
 		ObjIO::WriteMesh(outObject, object);
-		ObjIO::WriteMesh(outCamMesh, cameraMesh);
+
+		if (newCameraMesh) {
+			ObjIO::WriteMesh(outCamMesh, cameraMesh);
+		}
 	}
 	catch (std::exception &e) {
 		std::cerr << "Catch exception: " << e.what() << endl;
