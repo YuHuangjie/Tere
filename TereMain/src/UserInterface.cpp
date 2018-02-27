@@ -9,14 +9,21 @@ UserInterface::UserInterface(int sw, int sh, glm::vec3 last_up, glm::vec3 look_c
     this->look_center = look_center;
 }
 
-void UserInterface::FingerDown(bool finger_down, double x, double y)
+void UserInterface::Touch(double x, double y)
 {
-    arcball_on = finger_down;
+    arcball_on = true;
     last_mx = x;
     last_my = y;
 }
 
-void UserInterface::FingerMove(double x, double y, Camera &view)
+void UserInterface::Leave(double x, double y)
+{
+	arcball_on = false;
+	last_mx = x;
+	last_my = y;
+}
+
+void UserInterface::Move(double x, double y, Camera &view)
 {
     if (!arcball_on) { return; }
     

@@ -8,6 +8,13 @@
 #include "OBJRender.h"
 #include "UserInterface.h"
 
+enum UIType
+{
+	MOVE = 0,
+	TOUCH = 1,
+	LEAVE = 2,
+};
+
 class LFEngine
 {
 public:
@@ -26,7 +33,7 @@ public:
 	void Resize(GLuint width, GLuint height);
 
 	// 
-	void SetUI(int type, double sx, double sy);
+	void SetUI(UIType type, double sx, double sy);
 
 	// Set rendering camera to one of the reference cameras 
 	// specified by 'id'

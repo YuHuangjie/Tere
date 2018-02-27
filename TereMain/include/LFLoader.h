@@ -41,7 +41,7 @@ public:
 	void LoadProfile(const string &profile_prefix, 
 		const map<string, string> &profile);
 
-	void Decompress(const int no_thread);
+	bool Decompress(const int no_thread);
 	vector<GLuint> GenerateRGBDTextures(const unique_ptr<OBJRender> &);
 
 	inline LightFieldAttrib& GetLightFieldAttrib(void) { 
@@ -49,7 +49,7 @@ public:
 	};
 
 private:
-	void OnDecompressing(const int thread_id, const int thread_nr);
+	bool OnDecompressing(const int thread_id, const int thread_nr);
 
 	// light field configuration
 	LightFieldAttrib attrib;

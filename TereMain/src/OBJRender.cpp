@@ -163,7 +163,7 @@ int OBJRender::render(const vector<int> &viewport)
 	
     int nInterps = interpCameras.size() < NUM_INTERP ? interpCameras.size() : NUM_INTERP;
 	glUniform1i(nInterpsLocation, nInterps);
-	for (int i = 0; i != OBJRender::NUM_INTERP; ++i) {
+	for (int i = 0; i != nInterps; ++i) {
 		glUniform1i(interpIndicesLocation[i], interpCameras[i].index);
 		glUniform1f(interpWeightsLocation[i], interpCameras[i].weight);
 	}
@@ -207,41 +207,38 @@ int OBJRender::render(const vector<int> &viewport)
 void OBJRender::ReplaceHighTexture()
 {
     // Decode high resolution images
-    if (useHighTexture) {
-        string image_file;
-        unsigned char * buf = new unsigned char[attrib.width_H * attrib.height_H * 3];
-        for (int i = 0; i < NUM_HIGH_INTERP; ++i) {
-            //int id = camera_set.GetCamera(i);
-            int id = interpCameras[i].index;
-            if (id < 0) { continue; }
-            image_file = attrib.image_list[id];
+    string image_file;
+    unsigned char * buf = new unsigned char[attrib.width_H * attrib.height_H * 3];
+    for (int i = 0; i < NUM_HIGH_INTERP; ++i) {
+        int id = interpCameras[i].index;
+        if (id < 0) { continue; }
+        image_file = attrib.image_list[id];
             
-            // load RGB texture
-            GLuint rgb;
-            Image image = ImageIO::Read(image_file, attrib.width_H, attrib.height_H);
-            std::memcpy(buf, image.GetData(), attrib.width_H * attrib.height_H * 3);
-            glGenTextures(1, &rgb);
-            glBindTexture(GL_TEXTURE_2D, rgb);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, attrib.width_H, attrib.height_H);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, attrib.width_H, attrib.height_H,
-                            GL_RGB, GL_UNSIGNED_BYTE, buf);
-            //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, attrib.width_H, attrib.height_H,
-            //    0, GL_RGB, GL_UNSIGNED_BYTE, buf);
-            glBindTexture(GL_TEXTURE_2D, 0);
+        // load RGB texture
+        GLuint rgb;
+        Image image = ImageIO::Read(image_file, attrib.width_H, attrib.height_H);
+        std::memcpy(buf, image.GetData(), attrib.width_H * attrib.height_H * 3);
+        glGenTextures(1, &rgb);
+        glBindTexture(GL_TEXTURE_2D, rgb);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, attrib.width_H, attrib.height_H);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, attrib.width_H, attrib.height_H,
+                        GL_RGB, GL_UNSIGNED_BYTE, buf);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, attrib.width_H, attrib.height_H,
+        //    0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+        glBindTexture(GL_TEXTURE_2D, 0);
             
-            // render to rgbd texture
-            GLuint rgbd = AppendDepth(rgb, attrib.width_H, attrib.height_H,
-                                      attrib.ref_cameras_VP[id], attrib.ref_cameras_V[id]);
+        // render to rgbd texture
+        GLuint rgbd = AppendDepth(rgb, attrib.width_H, attrib.height_H,
+                                    attrib.ref_cameras_VP[id], attrib.ref_cameras_V[id]);
             
-            // replace original rgbd texture
-            glDeleteTextures(1, &rgb);
-            glDeleteTextures(1, &light_field_H[i]);
-            light_field_H[i] = rgbd;
-        }
-        delete[] buf;
+        // replace original rgbd texture
+        glDeleteTextures(1, &rgb);
+        glDeleteTextures(1, &light_field_H[i]);
+        light_field_H[i] = rgbd;
     }
+    delete[] buf;
 }
 
 GLuint OBJRender::AppendDepth(GLuint rgb, unsigned int width, unsigned int height,
@@ -371,7 +368,7 @@ bool OBJRender::TransferRefCameraToGL(const vector<glm::mat4> &refVP,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, nCameras * 4 + 1, 1, 0, GL_RGBA, GL_FLOAT, cam_vp_buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, nCameras * 4, 1, 0, GL_RGBA, GL_FLOAT, cam_vp_buffer);
 
 
 	/* Transfer cameras' view matrix */
@@ -389,7 +386,7 @@ bool OBJRender::TransferRefCameraToGL(const vector<glm::mat4> &refVP,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, nCameras * 4 + 1, 1, 0, GL_RGBA, GL_FLOAT, cam_v_buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, nCameras * 4, 1, 0, GL_RGBA, GL_FLOAT, cam_v_buffer);
 
 	// release resources
 	delete[] cam_vp_buffer;
@@ -586,12 +583,11 @@ void OBJRender::SearchInterpCameras(void)
 			return flag;
 		});
 
-		// assign weights
-		vector<int> first_eight(first_twelve.begin(), first_twelve.end());
+		// eight indices
+		std::list<int>::const_iterator itEight = first_twelve.cbegin();
 
-		for (vector<int>::const_iterator it = first_eight.cbegin(); 
-			it != first_eight.cend(); ++it) {
-			int index = *it;
+		for (int i = 0; i != 8; ++i) {
+			int index = *itEight++;
 			float cosDist = glm::dot(view_vec, attrib.ref_cameras[index].GetDir());
 			cosDist = std::pow(cosDist, 4);
 			float weight = std::exp(-(cosDist - 1)*(cosDist - 1) / 0.2222);

@@ -127,20 +127,21 @@ void LFEngine::Resize(GLuint width, GLuint height)
 	ui->SetResolution(width, height);
 }
 
-void LFEngine::SetUI(int type, double sx, double sy)
+void LFEngine::SetUI(UIType type, double sx, double sy)
 {
 	switch (type) {
-	case 0:
-		ui->FingerMove(sx, sy, gRenderCamera);
+	case MOVE:
+		ui->Move(sx, sy, gRenderCamera);
 		break;
-	case 1:
-		ui->FingerDown(true, sx, sy);
+	case TOUCH:
+		ui->Touch(sx, sy);
 		gOBJRender->UseHighTexture(false);
 		break;
-	case 2:
-		ui->FingerDown(false, sx, sy);
-		gOBJRender->UseHighTexture(true);
+	case LEAVE:
+		ui->Leave(sx, sy);
+		gOBJRender->SetVirtualCamera(gRenderCamera);
         gOBJRender->ReplaceHighTexture();
+		gOBJRender->UseHighTexture(true);
 		break;
 	default:
 		throw runtime_error("Setting false UI type");

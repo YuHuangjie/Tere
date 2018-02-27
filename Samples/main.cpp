@@ -161,11 +161,11 @@ namespace {
 		// Drag left button to interact with scene
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			glfwGetCursorPos(window, &mx, &my);
-			myEngine->SetUI(1, mx, my);
+			myEngine->SetUI(UIType::TOUCH, mx, my);
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 			glfwGetCursorPos(window, &mx, &my);
-			myEngine->SetUI(2, mx, my);
+			myEngine->SetUI(UIType::LEAVE, mx, my);
 		}
 		// Drag right button to take screen shot
 		else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
@@ -190,7 +190,7 @@ namespace {
 
 	void RenderCursorCallback(GLFWwindow *window, double xpos, double ypos)
 	{
-		myEngine->SetUI(0, xpos, ypos);
+		myEngine->SetUI(UIType::MOVE, xpos, ypos);
 	}
 
 	void RenderScrollCallback(GLFWwindow *window, double xpos, double ypos)

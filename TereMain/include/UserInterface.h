@@ -19,12 +19,11 @@ class UserInterface
 public:
     UserInterface(int sw, int sh, glm::vec3 last_up, glm::vec3 look_center);
     void SetResolution(int width, int height);
-    void FingerDown(bool finger_down, double x, double y);
-	//void FingerMove(double x, double y, RenderCamView &view);
-	void FingerMove(double x, double y, Camera &view);
+    void Touch(double x, double y);
+	void Leave(double x, double y);
+	void Move(double x, double y, Camera &view);
     
 private:
-	//glm::vec3 GetArcballVector(double x, double y, RenderCamView view);
 	glm::vec3 GetArcballVector(double x, double y, Camera view);
     
     glm::vec3 look_center;

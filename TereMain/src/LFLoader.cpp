@@ -2,6 +2,7 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
+#include <future>
 #include "LFLoader.h"
 #include "OBJRender.h"
 #include "common/CommonIO.hpp"
@@ -182,7 +183,7 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 	else { throw runtime_error("no camera_mesh file found"); }
 }
 
-void LFLoader::OnDecompressing(const int thread_id, const int thread_nr)
+bool LFLoader::OnDecompressing(const int thread_id, const int thread_nr)
 {
 	int image_num = attrib.N_REF_CAMERAS;
 	int texture_width = attrib.width_L;
@@ -192,34 +193,43 @@ void LFLoader::OnDecompressing(const int thread_id, const int thread_nr)
 		// distribute mission to different threads
 		if (i % thread_nr != thread_id) { continue; }
 
+		// Read compressed texture
 		Image image = ImageIO::Read(attrib.image_list[i], texture_width,
 			texture_height);
+
+		if (!image.GetData()) {
+			return false;
+		}
+
 		std::memcpy(rgbBuffer.data() + i*texture_width*texture_height * 3,
 			image.GetData(), texture_height * texture_width * 3);
-
-		//::Decompress(attrib.image_list[i], rgbBuffer.data() + 
-		//	i*texture_width*texture_height * 3, texture_width, texture_height);
 	}
+
+	return true;
 }
 
-void LFLoader::Decompress(const int no_thread)
+bool LFLoader::Decompress(const int no_thread)
 {
 	// allocate memory for rgb textures
 	int texture_width = attrib.width_L;
 	int texture_height = attrib.height_L;
-	std::vector<std::thread> t(no_thread);
+	std::vector< std::future<bool> > tasks(no_thread);
 
 	// some versions of libjpeg-turbo has a bug, hence the odd +1 here
 	rgbBuffer = vector<uint8_t>(texture_width*texture_height * 3 *
 		attrib.N_REF_CAMERAS + 1, 0);
 
 	for (int i = 0; i != no_thread; ++i) {
-		t[i] = std::thread(&LFLoader::OnDecompressing, this, i, no_thread);
+		tasks[i] = std::async(std::launch::async, &LFLoader::OnDecompressing, this, i, no_thread);
 	}
+
 	for (int i = 0; i != no_thread; ++i) {
-		if (t[i].joinable())
-			t[i].join();
+		if (!tasks[i].valid() || !tasks[i].get()) {
+			return false;
+		}
 	}
+
+	return true;
 }
 
 vector<GLuint> LFLoader::GenerateRGBDTextures(const unique_ptr<OBJRender> &renderer)
