@@ -169,7 +169,7 @@ int OBJRender::render(const vector<int> &viewport)
 	}
 
 	// Bind light field textures 
-	for (int i = 0; i != NUM_HIGH_INTERP; ++i) {
+	for (int i = 0; i < NUM_HIGH_INTERP && i < nInterps; ++i) {
 		int id = interpCameras[i].index;
 		if (id < 0) continue;
 		glActiveTexture(GL_TEXTURE3 + i);
@@ -182,7 +182,7 @@ int OBJRender::render(const vector<int> &viewport)
 		glUniform1i(lightFieldLocation[i], 3 + i);
 	}
 
-	for (int i = NUM_HIGH_INTERP; i != nInterps; ++i) {
+	for (int i = NUM_HIGH_INTERP; i < nInterps; ++i) {
 		int id = interpCameras[i].index;
 		if (id < 0) continue;
 		glActiveTexture(GL_TEXTURE3 + i);
@@ -617,6 +617,24 @@ void OBJRender::SetVirtualCamera(const Camera &camera)
 	View = camera.GetViewMatrix();
 	Projection = camera.GetProjectionMatrix(attrib.glnear, attrib.glfar);
 	SearchInterpCameras();
+}
+
+bool OBJRender::SetVirtualCamera(const size_t which)
+{
+	if (which < 0 || which >= attrib.N_REF_CAMERAS) {
+		return false;
+	}
+
+	virtual_camera = attrib.ref_cameras[which];
+	View = virtual_camera.GetViewMatrix();
+	Projection = virtual_camera.GetProjectionMatrix();
+	
+	// interpolate a single reference camera
+	WeightedCamera wc(static_cast<int>(which), 1.0);
+	interpCameras.clear();
+	interpCameras.push_back(wc);
+
+	return true;
 }
 
 //void OBJRender::GetTextureData(GLuint tex, unsigned char * image)

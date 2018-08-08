@@ -53,6 +53,14 @@ public:
 	bool GetScreenShot(unsigned char *buffer, int x, int y, int width, int height);
 
 private:
+	enum Mode
+	{
+		FIX,		// Fix virtual camera as ref camera and disable interpolation
+		INTERP		// Interpolation strategy
+	};
+	Mode _mode;			// select rendering mode
+	size_t _fixRef;	// in FIX mode, select which ref camera to imitate
+
 	// Initialization rendering engine given profile
 	void InitEngine(const string &profile);
 

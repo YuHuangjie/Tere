@@ -58,8 +58,10 @@ public:
 	// set light field texture
 	void SetLightFieldTexs(const vector<GLuint> &lfTexs);
 
-	// set virtual camera pose
+	// set virtual camera 
 	void SetVirtualCamera(const Camera &);
+	// set virtual camera as one of reference cameras and disable interpolation
+	bool SetVirtualCamera(const size_t which);
 
 	// indicate interaction is active
 	inline void UseHighTexture(bool flag) { useHighTexture = flag; }

@@ -7,7 +7,9 @@ using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
 LFEngine::LFEngine(const string &profile)
-	: gLFLoader(nullptr),
+	: _mode(INTERP),
+	_fixRef(0),
+	gLFLoader(nullptr),
 	gOBJRender(nullptr),
 	gRenderCamera(),
 	fps(0),
@@ -89,7 +91,15 @@ void LFEngine::InitEngine(const string &profile)
 
 void LFEngine::Draw(void)
 {
-	gOBJRender->SetVirtualCamera(gRenderCamera);
+	if (_mode == INTERP) {
+		gOBJRender->SetVirtualCamera(gRenderCamera);
+	}
+	else if (_mode == FIX) {
+		bool res = gOBJRender->SetVirtualCamera(_fixRef);
+		if (!res) {
+			_mode = INTERP;
+		}
+	}
 	gOBJRender->render(viewport);
 	++frames;
 }
@@ -136,6 +146,7 @@ void LFEngine::SetUI(UIType type, double sx, double sy)
 	case TOUCH:
 		ui->Touch(sx, sy);
 		gOBJRender->UseHighTexture(false);
+		_mode = INTERP;
 		break;
 	case LEAVE:
 		ui->Leave(sx, sy);
@@ -151,11 +162,8 @@ void LFEngine::SetUI(UIType type, double sx, double sy)
 
 void LFEngine::SetLocationOfReferenceCamera(int id)
 {
-	if (id < 0 || id >= gLFLoader->GetLightFieldAttrib().N_REF_CAMERAS) {
-		return;
-	}
-
-	gRenderCamera = gLFLoader->GetLightFieldAttrib().ref_cameras[id];
+	_fixRef = id;
+	_mode = FIX;
 }
 
 void LFEngine::SetZoomScale(float zoom_scale)
