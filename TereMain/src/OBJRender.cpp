@@ -569,12 +569,18 @@ void OBJRender::SearchInterpCameras(void)
 		}
 
 		// get sorted index (starting from least distance)
-		std::sort(ref_camera_index.begin(), ref_camera_index.end(), [this](int a, int b) {
+		const size_t how_many_sort = 12;
+
+		std::partial_sort(ref_camera_index.begin(), ref_camera_index.begin() + how_many_sort,
+			ref_camera_index.end(), [this](int a, int b) {
 			return ref_camera_dists[a] > ref_camera_dists[b];
 		});
+		//std::sort(ref_camera_index.begin(), ref_camera_index.end(), [this](int a, int b) {
+		//	return ref_camera_dists[a] > ref_camera_dists[b];
+		//});
 
 		// extract first twelve indices
-		std::list<int> first_twelve(ref_camera_index.begin(), ref_camera_index.begin() + 12);
+		std::list<int> first_twelve(ref_camera_index.begin(), ref_camera_index.begin() + how_many_sort);
 		// and remvoe already interpolated from them
 		first_twelve.remove_if([this](int a) {
 			bool flag = (a == interpCameras[0].index || a == interpCameras[1].index ||
@@ -586,7 +592,7 @@ void OBJRender::SearchInterpCameras(void)
 		// eight indices
 		std::list<int>::const_iterator itEight = first_twelve.cbegin();
 
-		for (int i = 0; i != 8; ++i) {
+		for (int i = 0; i != how_many_sort - 4; ++i) {
 			int index = *itEight++;
 			float cosDist = glm::dot(view_vec, attrib.ref_cameras[index].GetDir());
 			cosDist = std::pow(cosDist, 4);
