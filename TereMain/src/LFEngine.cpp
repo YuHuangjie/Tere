@@ -1,5 +1,8 @@
 #include "LFEngine.h"
 #include "common/Log.hpp"
+#include "CircleUI.h"
+#include "WeightedCamera.h"
+#include "InterpStrategy.h"
 #include <chrono>
 #include <cstdlib>
 
@@ -14,7 +17,8 @@ LFEngine::LFEngine(const string &profile)
 	gRenderCamera(),
 	fps(0),
 	frames(0),
-	ui(nullptr)
+	ui(nullptr),
+	_interpStrgFunc(DefaultInterpStrgFunc)
 {
 	InitEngine(profile);
 }
@@ -60,26 +64,28 @@ void LFEngine::InitEngine(const string &profile)
 		// Set rendering camera
 		LOGI("ENGINE: setting rendering camera\n");
 
-		glm::vec3 look_center = attrib.ref_camera_center;
-		const float render_cam_r = attrib.ref_camera_radius;
-		glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
+		glm::vec3 center = attrib.ref_camera_center;
+		const float r = attrib.ref_camera_radius;
+		glm::vec3 up = attrib.ref_camera_up;
+		glm::vec3 location = glm::vec3(center.x,
+			center.y - r * up.z / std::sqrt(up.y*up.y + up.z*up.z),
+			center.z + r * up.y / std::sqrt(up.y*up.y + up.z*up.z));
+
+		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
 			render_cam_r*sin(glm::pi<float>() / 2)*sin(0),
 			render_cam_r*cos(glm::pi<float>() / 2)) + look_center;
 		glm::vec3 _up = glm::vec3(0, 0, 1);
 		glm::vec3 lookat = (look_center - location) / glm::length(look_center - location);
 		glm::vec3 right = glm::cross(lookat, _up);
 		glm::vec3 up = glm::cross(right, lookat);
-		up = glm::normalize(up);
+		up = glm::normalize(up);*/
 
-		gRenderCamera.SetExtrinsic(Extrinsic(location, look_center, up));
-		gRenderCamera.SetIntrinsic(Intrinsic(
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetCx(),
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetCy(),
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetFx(),
-			gLFLoader->GetLightFieldAttrib().ref_cameras[0].GetFy()));
+		gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
+		gRenderCamera.SetIntrinsic(attrib.ref_cameras[0].GetIntrinsic());
 
 		// Set up user interface
-		ui = new UserInterface(0, 0, up, look_center);
+		//ui = new ArcballUI(0, 0, up, look_center);
+		ui = new CircleUI(0, up, center);
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());
@@ -91,15 +97,31 @@ void LFEngine::InitEngine(const string &profile)
 
 void LFEngine::Draw(void)
 {
-	if (_mode == INTERP) {
+	switch (_mode) {
+	case INTERP: {
 		gOBJRender->SetVirtualCamera(gRenderCamera);
+
+		// select which cameas and weights to interpolate
+		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
+		gOBJRender->SetInterpCameras(_interpStrgFunc(
+			attrib.ref_cameras, gRenderCamera, 
+			attrib.ref_camera_center, 3));
+
+		break;
 	}
-	else if (_mode == FIX) {
-		bool res = gOBJRender->SetVirtualCamera(_fixRef);
-		if (!res) {
-			_mode = INTERP;
-		}
+	case FIX: {
+		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
+		gOBJRender->SetVirtualCamera(attrib.ref_cameras[_fixRef]);
+
+		// select a fixed camera for interpolation
+		gOBJRender->SetInterpCameras(WeightedCamera(
+			static_cast<int>(_fixRef), 1.0));
+		break;
 	}
+	default:break;
+	}	
+
+	// call underlying renderer
 	gOBJRender->render(viewport);
 	++frames;
 }
@@ -145,14 +167,15 @@ void LFEngine::SetUI(UIType type, double sx, double sy)
 		break;
 	case TOUCH:
 		ui->Touch(sx, sy);
-		gOBJRender->UseHighTexture(false);
+		gOBJRender->UseHighTexture(false);     
 		_mode = INTERP;
 		break;
 	case LEAVE:
 		ui->Leave(sx, sy);
-		gOBJRender->SetVirtualCamera(gRenderCamera);
-        gOBJRender->ReplaceHighTexture();
-		gOBJRender->UseHighTexture(true);
+		SetLocationOfReferenceCamera(17);
+		//gOBJRender->SetVirtualCamera(gRenderCamera);
+        //gOBJRender->ReplaceHighTexture();
+		//gOBJRender->UseHighTexture(true);
 		break;
 	default:
 		throw runtime_error("Setting false UI type");

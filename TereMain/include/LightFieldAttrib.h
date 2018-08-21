@@ -14,6 +14,7 @@ struct LightFieldAttrib
 		ref_cameras_V(),
 		obj_file(),
 		ref_camera_center(),
+		ref_camera_up(),
 		ref_camera_radius(0.f),
 		camera_mesh_name(),
 		glnear(0.f),
@@ -34,6 +35,7 @@ struct LightFieldAttrib
 	std::string obj_file;			// object mesh
 
 	glm::vec3 ref_camera_center;    // ref cameras' center
+	glm::vec3 ref_camera_up;	// ref cameras' normal
 	float ref_camera_radius;        // ref cameras' radius
 	std::string camera_mesh_name;   // ref camera mesh
 

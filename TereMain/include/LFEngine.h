@@ -18,6 +18,9 @@ enum UIType
 class LFEngine
 {
 public:
+	typedef vector<WeightedCamera>(*InterpStrgFunc)(const vector<Camera>&ref,
+		const Camera &vir, const glm::vec3 &p, const size_t maxn);
+
 	explicit LFEngine(const string &profile);
 	LFEngine(const LFEngine &) = delete;
 	LFEngine& operator=(const LFEngine&) = delete;
@@ -82,6 +85,8 @@ private:
 	int frames; // frames drawn
 
 	UserInterface *ui;   // Used for user interaction
+
+	InterpStrgFunc _interpStrgFunc;
 };
 
 

@@ -163,6 +163,15 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 	}
 	else { throw runtime_error("no camera_radius found in profile"); }
 
+	search = profile.find("camera_up");
+	if (search != profile.end()) {
+		glm::vec3 up;
+		istringstream iss(search->second);
+		iss >> up.x >> up.y >> up.z;
+		attrib.ref_camera_up = up;
+	}
+	else { throw runtime_error("no camera_up found in profile"); }
+
 	// check light field configuration is consistent
 	if (attrib.ref_cameras.size() != attrib.N_REF_CAMERAS) {
 		throw runtime_error("light field configration is inconsistent");

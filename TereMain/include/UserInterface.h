@@ -9,33 +9,23 @@
 #ifndef UserInterface_h
 #define UserInterface_h
 
-#include "glm/glm.hpp"
-//#include "RenderCamView.h"
 #include "camera/Camera.hpp"
 
 
 class UserInterface
 {
 public:
-    UserInterface(int sw, int sh, glm::vec3 last_up, glm::vec3 look_center);
-    void SetResolution(int width, int height);
-    void Touch(double x, double y);
-	void Leave(double x, double y);
-	void Move(double x, double y, Camera &view);
-    
-private:
-	glm::vec3 GetArcballVector(double x, double y, Camera view);
-    
-    glm::vec3 look_center;
-    glm::vec3 last_up;
-    
-    // screen size
-    int screen_width, screen_height;
-    
-    // UI
-    bool arcball_on = false;
-    double last_mx, last_my;
-    double cur_mx, cur_my;
+	UserInterface();
+	virtual ~UserInterface() {}
+
+	virtual void SetResolution(const int width, const int height);
+    virtual void Touch(const double x, const double y) = 0;
+	virtual void Leave(const double x, const double y) = 0;
+	virtual void Move(const double x, const double y, Camera &view) = 0;
+
+protected:
+	// screen size
+	int screen_width, screen_height;
 };
 
 #endif /* UserInterface_hpp */

@@ -21,21 +21,13 @@
 #include <thread>
 
 #include "LightFieldAttrib.h"
+#include "WeightedCamera.h"
 
 using std::vector;
 using std::string;
 using glm::mat4;
 using glm::vec3;
 using glm::ivec4;
-
-class WeightedCamera
-{
-public:
-	WeightedCamera(int i, float w) : index(i), weight(w) {}
-
-	int index;
-	float weight;
-};
 
 class OBJRender
 {
@@ -58,10 +50,12 @@ public:
 	// set light field texture
 	void SetLightFieldTexs(const vector<GLuint> &lfTexs);
 
+	// Set interpolation cameras
+	bool SetInterpCameras(const vector<WeightedCamera> &cameras);
+	bool SetInterpCameras(const WeightedCamera &camera);
+
 	// set virtual camera 
 	void SetVirtualCamera(const Camera &);
-	// set virtual camera as one of reference cameras and disable interpolation
-	bool SetVirtualCamera(const size_t which);
 
 	// indicate interaction is active
 	inline void UseHighTexture(bool flag) { useHighTexture = flag; }

@@ -60,7 +60,7 @@ if (BUILD_SAMPLES)
 		${GLEW_LIBRARIES} 
 		${WEBP_LIBRARIES} 
 		${JPEG-TURBO_LIBRARIES}
-		TereMain
+		TereMain.lib
 		)
 
 	# installation

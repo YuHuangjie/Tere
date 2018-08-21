@@ -37,3 +37,7 @@ add_subdirectory(Tools)
 
 # Setup samples
 add_subdirectory(Samples)
+
+# Setup tests
+set(BUILD_TESTS TRUE CACHE BOOL "Build tests")
+add_subdirectory(Test)
