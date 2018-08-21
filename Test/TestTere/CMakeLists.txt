@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Require google test
 find_package(gtest REQUIRED)
+if (NOT GTEST_FOUND)
+	message(SEND_ERROR "Package gtest required, but not found!")
+endif()
 
 # Require glm
 find_package(GLM REQUIRED)

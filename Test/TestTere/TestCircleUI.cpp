@@ -13,8 +13,8 @@ namespace {
 		CircleUI ui(1024, up, target);
 		
 		ui.Touch(0, 0);
-		ui.Move(1024.0, 400.0, cam);
-		ui.Leave(1024.0, 400.0);
+		cam = ui.Move(1024.0, 400.0, cam);
+		cam = ui.Leave(1024.0, 400.0, cam);
 
 		// intrinsic mustn't be changed
 		ASSERT_EQ(cam.GetCx(), cx);
@@ -51,12 +51,12 @@ namespace {
 			Camera cam(_cam);
 			ui.Touch(512, 0);
 			if (dragToRight) {
-				ui.Move(1024, 400.0, cam);
-				ui.Leave(1024, 400.0);
+				cam = ui.Move(1024, 400.0, cam);
+				cam = ui.Leave(1024, 400.0, cam);
 			}
 			else {
-				ui.Move(0, 400.0, cam);
-				ui.Leave(0, 400.0);
+				cam = ui.Move(0, 400.0, cam);
+				cam = ui.Leave(0, 400.0, cam);
 			}
 
 			// intrinsic mustn't be changed

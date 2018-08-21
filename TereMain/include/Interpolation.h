@@ -1,7 +1,7 @@
 #ifndef INTERPOLATION_H
 #define INTERPOLATION_H
 
-#include "camera/Camera.hpp"
+#include "camera/Extrinsic.hpp"
 
 // Interpolate rotation and translation simultaneously. Rotations are 
 // converted to quaternions and interpolated by SLERP. Translation are 

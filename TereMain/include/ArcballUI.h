@@ -11,11 +11,11 @@ public:
 		glm::vec3 look_center);
 
 	virtual void Touch(const double x, const double y) override;
-	virtual void Leave(const double x, const double y) override;
-	virtual void Move(const double x, const double y, Camera &view) override;
+	virtual Camera Leave(const double x, const double y, const Camera &view) override;
+	virtual Camera Move(const double x, const double y, const Camera &view) override;
 
 private:
-	glm::vec3 GetArcballVector(double x, double y, Camera view);
+	glm::vec3 GetArcballVector(double x, double y, const Camera &view);
 
 	glm::vec3 look_center;
 	glm::vec3 last_up;

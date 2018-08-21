@@ -1,6 +1,7 @@
 #include "LFEngine.h"
 #include "common/Log.hpp"
 #include "CircleUI.h"
+#include "LinearUI.h"
 #include "WeightedCamera.h"
 #include "InterpStrategy.h"
 #include <chrono>
@@ -71,21 +72,30 @@ void LFEngine::InitEngine(const string &profile)
 			center.y - r * up.z / std::sqrt(up.y*up.y + up.z*up.z),
 			center.z + r * up.y / std::sqrt(up.y*up.y + up.z*up.z));
 
+
+		
+		gRenderCamera.SetIntrinsic(attrib.ref_cameras[0].GetIntrinsic());
+
+		// Set up user interface
+		// 
+		// Circle UI
+		//gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
+		//ui = new CircleUI(0, up, center);
+
+		// Linear UI
+		gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
+		ui = new LinearUI(0, attrib.ref_cameras, 0.f);
+
+		// arcball UI
 		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
-			render_cam_r*sin(glm::pi<float>() / 2)*sin(0),
-			render_cam_r*cos(glm::pi<float>() / 2)) + look_center;
+		render_cam_r*sin(glm::pi<float>() / 2)*sin(0),
+		render_cam_r*cos(glm::pi<float>() / 2)) + look_center;
 		glm::vec3 _up = glm::vec3(0, 0, 1);
 		glm::vec3 lookat = (look_center - location) / glm::length(look_center - location);
 		glm::vec3 right = glm::cross(lookat, _up);
 		glm::vec3 up = glm::cross(right, lookat);
 		up = glm::normalize(up);*/
-
-		gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
-		gRenderCamera.SetIntrinsic(attrib.ref_cameras[0].GetIntrinsic());
-
-		// Set up user interface
 		//ui = new ArcballUI(0, 0, up, look_center);
-		ui = new CircleUI(0, up, center);
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());
@@ -163,7 +173,7 @@ void LFEngine::SetUI(UIType type, double sx, double sy)
 {
 	switch (type) {
 	case MOVE:
-		ui->Move(sx, sy, gRenderCamera);
+		gRenderCamera = ui->Move(sx, sy, gRenderCamera);
 		break;
 	case TOUCH:
 		ui->Touch(sx, sy);
@@ -171,8 +181,7 @@ void LFEngine::SetUI(UIType type, double sx, double sy)
 		_mode = INTERP;
 		break;
 	case LEAVE:
-		ui->Leave(sx, sy);
-		SetLocationOfReferenceCamera(17);
+		gRenderCamera = ui->Leave(sx, sy, gRenderCamera);
 		//gOBJRender->SetVirtualCamera(gRenderCamera);
         //gOBJRender->ReplaceHighTexture();
 		//gOBJRender->UseHighTexture(true);

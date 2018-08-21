@@ -20,8 +20,8 @@ public:
 
 	virtual void SetResolution(const int width, const int height);
     virtual void Touch(const double x, const double y) = 0;
-	virtual void Leave(const double x, const double y) = 0;
-	virtual void Move(const double x, const double y, Camera &view) = 0;
+	virtual Camera Leave(const double x, const double y, const Camera &view) = 0;
+	virtual Camera Move(const double x, const double y, const Camera &view) = 0;
 
 protected:
 	// screen size

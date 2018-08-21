@@ -22,21 +22,22 @@ void ArcballUI::Touch(const double x, const double y)
 	last_my = y;
 }
 
-void ArcballUI::Leave(const double x, const double y)
+Camera ArcballUI::Leave(const double x, const double y, const Camera &view)
 {
 	arcball_on = false;
 	last_mx = x;
 	last_my = y;
+	return view;
 }
 
-void ArcballUI::Move(const double x, const double y, Camera &view)
+Camera ArcballUI::Move(const double x, const double y, const Camera &view)
 {
-	if (!arcball_on) { return; }
+	if (!arcball_on) { return view; }
 
 	cur_mx = x;
 	cur_my = y;
 
-	if (cur_mx == last_mx && cur_my == last_my) { return; }
+	if (cur_mx == last_mx && cur_my == last_my) { return view; }
 
 	glm::vec3 va = GetArcballVector(last_mx, last_my, view);
 	glm::vec3 vb = GetArcballVector(cur_mx, cur_my, view);
@@ -57,13 +58,17 @@ void ArcballUI::Move(const double x, const double y, Camera &view)
 	lookat = glm::normalize(lookat);
 	up = glm::normalize(up);
 	last_up = up;
-	view.SetExtrinsic(Extrinsic(location, location + lookat, up));
+
+	Camera result(Extrinsic(location, location + lookat, up),
+		view.GetIntrinsic());
 
 	last_mx = cur_mx;
 	last_my = cur_my;
+
+	return result;
 }
 
-glm::vec3 ArcballUI::GetArcballVector(double x, double y, Camera view)
+glm::vec3 ArcballUI::GetArcballVector(double x, double y, const Camera &view)
 {
 	glm::vec3 P(1.0 * x / screen_width * 2 - 1.0,
 		1.0 * y / screen_height * 2 - 1.0,

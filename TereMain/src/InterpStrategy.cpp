@@ -56,5 +56,13 @@ vector<WeightedCamera> DefaultInterpStrgFunc(
 		interpCams.push_back(WeightedCamera(static_cast<int>(indices[i]), weights[i]));
 	}
 
+	// exact match
+	if (std::abs(distances[indices[0]] - 1.f) < 1e-5) {
+		interpCams[0].weight = 1.f;
+		for (size_t i = 1; i < nInterp; ++i) {
+			interpCams[i].weight = 0.f;
+		}
+	}
+
 	return interpCams;
 }

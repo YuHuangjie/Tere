@@ -19,16 +19,20 @@ void CircleUI::Touch(const double x, const double y)
 	_px = x;
 }
 
-void CircleUI::Leave(const double x, const double y)
+Camera CircleUI::Leave(const double x, const double y, const Camera &view)
 {
 	_activated = false;
 	_px = x;
+	return view;
 }
 
-void CircleUI::Move(const double x, const double y, Camera &view)
+Camera CircleUI::Move(const double x, const double y, const Camera &view)
 {
 	if (!_activated) {
-		return;
+		return view;
+	}
+	if (x == _px) {
+		return view;
 	}
 
 	_cx = x;
@@ -47,8 +51,12 @@ void CircleUI::Move(const double x, const double y, Camera &view)
 	glm::vec3 location(_location);
 	glm::vec3 lookat = glm::normalize(_center - location);
 	glm::vec3 right = glm::cross(lookat, _up);
-	view.SetExtrinsic(Extrinsic(location, location + lookat, _up));
+
+	Camera result(Extrinsic(location, location + lookat, _up),
+		view.GetIntrinsic());
 
 	_px = _cx;
 	_py = _cy;
+
+	return result;
 }
