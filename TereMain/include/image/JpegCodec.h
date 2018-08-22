@@ -100,9 +100,8 @@ inline bool DecodeJpegHeader(const string &filename, unsigned int &width, unsign
 	int _width = 0;
 	int _height = 0;
 	int _subsample = 0;
-	int _colorspace = 0;
-	int result = tjDecompressHeader3(decompressor, jpeg_buf, jpeg_size,
-		&_width, &_height, &_subsample, &_colorspace);
+	int result = tjDecompressHeader2(decompressor, jpeg_buf, jpeg_size,
+		&_width, &_height, &_subsample);
 	tjDestroy(decompressor);
 	width = _width;
 	height = _height;
