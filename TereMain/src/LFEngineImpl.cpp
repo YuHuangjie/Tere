@@ -85,7 +85,7 @@ void LFEngineImpl::InitEngine(const string &profile)
 
 		// Linear UI
 		gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
-		ui = new LinearUI(attrib.ref_cameras, 0.f);
+		ui = new LinearUI(attrib.ref_cameras, 0);
 
 		// arcball UI
 		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),

@@ -21,7 +21,7 @@ public:
 	//         ^
 	//         p
 	//
-	LinearUI(const vector<Camera> &camList, const float p);
+	LinearUI(const vector<Camera> &camList, const int p);
 
 	virtual std::string Name() const override;
 	virtual void Touch(const double x, const double y) override;

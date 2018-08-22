@@ -2,7 +2,7 @@
 #include "Interpolation.h"
 #include "camera/Camera.hpp"
 
-LinearUI::LinearUI(const vector<Camera> &camList, const float p)
+LinearUI::LinearUI(const vector<Camera> &camList, const int p)
 	: UserInterface(),
 	_camList(camList),
 	_nCams(_camList.size()),
@@ -12,7 +12,8 @@ LinearUI::LinearUI(const vector<Camera> &camList, const float p)
 	_cx(0.0),
 	_cy(0.0),
 	_point(p),
-	_direction(1)
+	_direction(1),
+	_nearest(0)
 {
 	SetResolution(0, 0);
 }
