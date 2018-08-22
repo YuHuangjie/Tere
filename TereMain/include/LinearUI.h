@@ -24,9 +24,11 @@ public:
 	//
 	LinearUI(const int sw, const vector<Camera> &camList, const float p);
 
+	virtual std::string Name() const override;
 	virtual void Touch(const double x, const double y) override;
 	virtual Camera Leave(const double x, const double y, const Camera &view) override;
 	virtual Camera Move(const double x, const double y, const Camera &view) override;
+	size_t GetNearestRef() const;
 
 protected:
 	const vector<Camera>& _camList;
@@ -37,6 +39,7 @@ protected:
 	double _cx, _cy;
 	float _point;		// point int the list
 	int _direction;		// sliding direction
+	size_t _nearest;	// nearest reference camera
 };
 
 float NormalizePoint(const float p, const float list);

@@ -60,3 +60,8 @@ Camera CircleUI::Move(const double x, const double y, const Camera &view)
 
 	return result;
 }
+
+std::string CircleUI::Name() const
+{
+	return "circle";
+}

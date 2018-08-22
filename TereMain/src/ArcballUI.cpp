@@ -87,3 +87,8 @@ glm::vec3 ArcballUI::GetArcballVector(double x, double y, const Camera &view)
 
 	return P;
 }
+
+std::string ArcballUI::Name() const
+{
+	return "arcball";
+}

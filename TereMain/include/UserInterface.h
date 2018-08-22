@@ -10,7 +10,7 @@
 #define UserInterface_h
 
 #include "camera/Camera.hpp"
-
+#include <string>
 
 class UserInterface
 {
@@ -18,6 +18,7 @@ public:
 	UserInterface();
 	virtual ~UserInterface() {}
 
+	virtual std::string Name() const = 0;
 	virtual void SetResolution(const int width, const int height);
     virtual void Touch(const double x, const double y) = 0;
 	virtual Camera Leave(const double x, const double y, const Camera &view) = 0;

@@ -10,6 +10,7 @@ public:
 	ArcballUI(const int sw, const int sh, glm::vec3 last_up, 
 		glm::vec3 look_center);
 
+	virtual std::string Name() const override;
 	virtual void Touch(const double x, const double y) override;
 	virtual Camera Leave(const double x, const double y, const Camera &view) override;
 	virtual Camera Move(const double x, const double y, const Camera &view) override;

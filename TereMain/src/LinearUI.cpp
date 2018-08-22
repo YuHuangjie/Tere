@@ -30,10 +30,12 @@ Camera LinearUI::Leave(const double x, const double y, const Camera &view)
 	if (_direction == 1) {
 		int left = static_cast<int>(std::floor(_point));
 		if (left == -1) { left = _nCams - 1; }
+		_nearest = left;
 		return _camList[left];
 	}
 	else {
 		int right = static_cast<int>(std::ceil(_point));
+		_nearest = right;
 		return _camList[right];
 	}
 }
@@ -81,6 +83,16 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 	_px = _cx;
 
 	return result;
+}
+
+std::string LinearUI::Name() const
+{
+	return "linear";
+}
+
+size_t LinearUI::GetNearestRef() const
+{
+	return _nearest;
 }
 
 float NormalizePoint(const float p, const float list)
