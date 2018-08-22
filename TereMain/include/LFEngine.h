@@ -3,17 +3,19 @@
 
 #include <string>
 #include <memory>
-#include "LFLoader.h"
-#include "camera/Camera.hpp"
-#include "OBJRender.h"
-#include "UserInterface.h"
+#include <vector>
+#include <cstdint>
+#include "glm/fwd.hpp"
 
-enum UIType
-{
-	MOVE = 0,
-	TOUCH = 1,
-	LEAVE = 2,
-};
+class LFEngineImpl;
+class WeightedCamera;
+class Camera;
+enum UIType : unsigned int;
+
+using std::vector;
+using std::string;
+using std::unique_ptr;
+
 
 class LFEngine
 {
@@ -33,7 +35,7 @@ public:
 	void StartFPSThread(void);
 
 	// Change view port size
-	void Resize(GLuint width, GLuint height);
+	void Resize(uint32_t width, uint32_t height);
 
 	// 
 	void SetUI(UIType type, double sx, double sy);
@@ -48,7 +50,7 @@ public:
 	void SetZoomScale(float zoom_scale);
 
 	// Get FPS (frames drawn in previous second)
-	inline int GetFPS(void) { return fps; }
+	int GetFPS(void) const;
     
 	// Extract a subregion of current frame buffer. 
 	// x and y specifies the lower left corner of this region, 
@@ -56,37 +58,7 @@ public:
 	bool GetScreenShot(unsigned char *buffer, int x, int y, int width, int height);
 
 private:
-	enum Mode
-	{
-		FIX,		// Fix virtual camera as ref camera and disable interpolation
-		INTERP		// Interpolation strategy
-	};
-	Mode _mode;			// select rendering mode
-	size_t _fixRef;	// in FIX mode, select which ref camera to imitate
-
-	// Initialization rendering engine given profile
-	void InitEngine(const string &profile);
-
-	// Background thread for FPS counting
-	void VRFPS(void);
-    
-    vector<int> viewport;   // viewport size
-		
-	// Used for loading light field data(images, parameters...)
-	unique_ptr<LFLoader> gLFLoader;	
-
-	// Used for rendering
-	unique_ptr<OBJRender> gOBJRender;	
-
-	// Rendering camera object
-	Camera gRenderCamera;
-
-	int fps;    // frames per second
-	int frames; // frames drawn
-
-	UserInterface *ui;   // Used for user interaction
-
-	InterpStrgFunc _interpStrgFunc;
+	unique_ptr<LFEngineImpl> _pImpl;
 };
 
 

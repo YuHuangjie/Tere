@@ -6,10 +6,11 @@
 #include <glm/gtx/string_cast.hpp>
 #include "LFEngine.h"
 #include "common/Shader.hpp"
+#include "UIType.h"
 
 namespace {
-	const int WINDOW_WIDTH = 1024;
-	const int WINDOW_HEIGHT = 1024;
+	const int WINDOW_WIDTH = 360;
+	const int WINDOW_HEIGHT = 640;
 
 	// light field engine  
 	LFEngine *myEngine = nullptr;
@@ -63,7 +64,7 @@ int main(int argc, char **argv)
 
 		// set up render engine
 		myEngine = new LFEngine(profilePathName);
-		myEngine->SetLocationOfReferenceCamera(18);
+		//myEngine->SetLocationOfReferenceCamera(12);
 		myEngine->Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		myEngine->StartFPSThread();
 		glfwRestoreWindow(gWindow);
