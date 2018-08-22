@@ -11,7 +11,8 @@ namespace {
 		double cx = 1.0, cy = 1.0, fx = 1.0, fy = 1.0; // inrelevent
 		Camera cam(Extrinsic(pos, target, up), Intrinsic(cx, cy, fx, fy));
 
-		CircleUI ui(1024, up, target);
+		CircleUI ui(up, target);
+		ui.SetResolution(1024, 0);
 		
 		ui.Touch(0, 0);
 		cam = ui.Move(1024.0, 400.0, cam);
@@ -44,7 +45,8 @@ namespace {
 		double cx = 1.0, cy = 1.0, fx = 1.0, fy = 1.0; // inrelevent
 		Camera _cam(Extrinsic(pos, target, up), Intrinsic(cx, cy, fx, fy));
 
-		CircleUI ui(1024, up, target);
+		CircleUI ui(up, target);
+		ui.SetResolution(1024, 0);
 
 		bool dragToRight = true;
 

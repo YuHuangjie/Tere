@@ -3,6 +3,7 @@
 #include "common/Log.hpp"
 #include "CircleUI.h"
 #include "LinearUI.h"
+#include "MultiLinearUI.h"
 #include "WeightedCamera.h"
 #include "InterpStrategy.h"
 #include <chrono>
@@ -84,8 +85,12 @@ void LFEngineImpl::InitEngine(const string &profile)
 		//ui = new CircleUI(up, center);
 
 		// Linear UI
+		//gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
+		//ui = new LinearUI(attrib.ref_cameras, 0);
+
+		// MultiLinear UI
 		gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
-		ui = new LinearUI(attrib.ref_cameras, 0);
+		ui = new MultiLinearUI(attrib.ref_cameras, 3, 0);
 
 		// arcball UI
 		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
@@ -185,6 +190,9 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 		gRenderCamera = ui->Leave(sx, sy, gRenderCamera);
 		if (ui->Name() == "linear") {
 			SetLocationOfReferenceCamera(static_cast<LinearUI*>(ui)->GetNearestRef());
+		}
+		else if (ui->Name() == "multilinear") {
+			SetLocationOfReferenceCamera(static_cast<MultiLinearUI*>(ui)->GetNearestRef());
 		}
 		//gOBJRender->SetVirtualCamera(gRenderCamera);
 		//gOBJRender->ReplaceHighTexture();

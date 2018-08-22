@@ -53,6 +53,7 @@ protected:
 	float _pCol;		// col pointer to the layout
 	Direction _direction;
 	Major _major;
+	bool _majorLock;	// major shouldn't change through interaction
 	size_t _nearest;	// nearest reference camera
 };
 
