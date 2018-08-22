@@ -1,0 +1,1 @@
+ndk-build NDK_LIBS_OUT=..\build-android\libs NDK_OUT=..\build-android\temp\obj
