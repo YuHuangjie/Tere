@@ -1,7 +1,8 @@
 #include "LinearUI.h"
 #include "Interpolation.h"
+#include "camera/Camera.hpp"
 
-LinearUI::LinearUI(const int sw, const vector<Camera> &camList, const float p)
+LinearUI::LinearUI(const vector<Camera> &camList, const float p)
 	: UserInterface(),
 	_camList(camList),
 	_nCams(_camList.size()),
@@ -13,7 +14,7 @@ LinearUI::LinearUI(const int sw, const vector<Camera> &camList, const float p)
 	_point(p),
 	_direction(1)
 {
-	SetResolution(sw, 0);
+	SetResolution(0, 0);
 }
 
 void LinearUI::Touch(const double x, const double y)

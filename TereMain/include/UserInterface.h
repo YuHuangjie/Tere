@@ -9,8 +9,9 @@
 #ifndef UserInterface_h
 #define UserInterface_h
 
-#include "camera/Camera.hpp"
 #include <string>
+
+class Camera;
 
 class UserInterface
 {

@@ -1,7 +1,8 @@
 #include "glm/gtx/transform.hpp"
 #include "ArcballUI.h"
+#include "camera/Camera.hpp"
 
-ArcballUI::ArcballUI(const int sw, const int sh, glm::vec3 last_up,
+ArcballUI::ArcballUI(glm::vec3 last_up,
 	glm::vec3 look_center)
 	: UserInterface(),
 	last_up(last_up),
@@ -12,7 +13,7 @@ ArcballUI::ArcballUI(const int sw, const int sh, glm::vec3 last_up,
 	cur_mx(0.0),
 	cur_my(0.0)
 {
-	SetResolution(sw, sh);
+	SetResolution(0, 0);
 }
 
 void ArcballUI::Touch(const double x, const double y)

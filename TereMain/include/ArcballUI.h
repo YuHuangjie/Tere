@@ -1,14 +1,13 @@
 #ifndef ARCBALLUI_H
 #define ARCBALLUI_H
 
-#include "glm/glm.hpp"
+#include "glm/fwd.hpp"
 #include "UserInterface.h"
 
 class ArcballUI : public UserInterface
 {
 public:
-	ArcballUI(const int sw, const int sh, glm::vec3 last_up, 
-		glm::vec3 look_center);
+	ArcballUI(glm::vec3 last_up, glm::vec3 look_center);
 
 	virtual std::string Name() const override;
 	virtual void Touch(const double x, const double y) override;

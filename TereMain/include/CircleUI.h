@@ -7,7 +7,7 @@
 class CircleUI : public UserInterface
 {
 public:
-	CircleUI(const int sw, const glm::vec3 &up, const glm::vec3 &center);
+	CircleUI(const glm::vec3 &up, const glm::vec3 &center);
 
 	virtual std::string Name() const override;
 	virtual void Touch(const double x, const double y) override;

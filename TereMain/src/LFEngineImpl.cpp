@@ -81,11 +81,11 @@ void LFEngineImpl::InitEngine(const string &profile)
 		// 
 		// Circle UI
 		//gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
-		//ui = new CircleUI(0, up, center);
+		//ui = new CircleUI(up, center);
 
 		// Linear UI
 		gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
-		ui = new LinearUI(0, attrib.ref_cameras, 0.f);
+		ui = new LinearUI(attrib.ref_cameras, 0.f);
 
 		// arcball UI
 		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
@@ -96,7 +96,7 @@ void LFEngineImpl::InitEngine(const string &profile)
 		glm::vec3 right = glm::cross(lookat, _up);
 		glm::vec3 up = glm::cross(right, lookat);
 		up = glm::normalize(up);*/
-		//ui = new ArcballUI(0, 0, up, look_center);
+		//ui = new ArcballUI(up, look_center);
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());

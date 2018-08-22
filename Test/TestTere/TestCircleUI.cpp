@@ -1,4 +1,5 @@
 #include "CircleUI.h"
+#include "camera/Camera.hpp"
 #include <gtest/gtest.h>
 
 

@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "glm/glm.hpp"
 #include "UserInterface.h"
 
 using std::vector;
@@ -22,7 +21,7 @@ public:
 	//         ^
 	//         p
 	//
-	LinearUI(const int sw, const vector<Camera> &camList, const float p);
+	LinearUI(const vector<Camera> &camList, const float p);
 
 	virtual std::string Name() const override;
 	virtual void Touch(const double x, const double y) override;

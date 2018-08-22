@@ -1,6 +1,7 @@
 #include "CircleUI.h"
+#include "camera/Camera.hpp"
 
-CircleUI::CircleUI(const int sw, const glm::vec3 & up, const glm::vec3 & center)
+CircleUI::CircleUI(const glm::vec3 & up, const glm::vec3 & center)
 	: UserInterface(),
 	_up(up),
 	_center(center),
@@ -10,7 +11,7 @@ CircleUI::CircleUI(const int sw, const glm::vec3 & up, const glm::vec3 & center)
 	_cx(0.0),
 	_cy(0.0)
 {
-	SetResolution(sw, 0);
+	SetResolution(0, 0);
 }
 
 void CircleUI::Touch(const double x, const double y)
