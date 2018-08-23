@@ -24,14 +24,36 @@ public:
 	inline const std::vector<float> &GetVertices(void) const {
 		return mVertices; 
 	}
+	inline const bool HasVertex(void) const {
+		return !mVertices.empty();
+	}
+
 	inline const std::vector<float> &GetNormals(void) const {
 		return mNormals;
 	}
+	inline const bool HasNormal(void) const {
+		return !mNormals.empty();
+	}
+
 	inline const std::vector<float> &GetTexcoords(void) const {
 		return mTexcoords;
 	}
+	inline const bool HasTexcoords(void) const {
+		return !mTexcoords.empty();
+	}
+
 	inline const std::vector<int32_t> &GetIndices(void) const {
 		return mIndices;
+	}
+	inline const bool HasIndices(void) const {
+		return !mIndices.empty();
+	}
+
+	inline const std::vector<uint8_t> &GetColors(void) const {
+		return mColors;
+	}
+	inline const bool HasColors(void) const {
+		return !mColors.empty();
 	}
 
 protected:

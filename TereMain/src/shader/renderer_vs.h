@@ -11,7 +11,7 @@ const char *renderer_vertex_code =
 #endif
 
 "layout(location = 0) in vec3 vertex_position_modelspace; \n"	// vertex location in model space
-"layout(location = 1) in vec2 quad_tex_coord; \n"
+"layout(location = 1) in vec3 color; \n"	// vertex color
 
 // View Projection matrix of rendering camera
 "uniform mat4 VP;\n"
@@ -27,6 +27,7 @@ const char *renderer_vertex_code =
 
 "out float[12] depthNoOccul;    \n"
 "out vec4 vertex_location;\n"
+"out vec3 vColor;\n"
 
 // quad texture test
 "out vec2 my_tex_coord;\n"
@@ -38,6 +39,7 @@ const char *renderer_vertex_code =
 "{\n"
 "	vertex_location = vec4(vertex_position_modelspace, 1);\n"
 "	gl_Position = VP * vertex_location; \n"
+"   vColor = color; \n"
 
 // declarations
 "	vec4 vertex_in_camera;\n"

@@ -77,6 +77,7 @@ private:
 	vector<GLuint> vertexArrays;			// VAO
 	vector<GLuint> vertexBuffers;          // VBO
 	vector<GLuint> elementBuffers;         // EBO
+	vector<GLuint> vColorBuffers;			// vertex color buffer
 
 	// textures storing reference cameas' VP/V matrices
 	GLuint ref_cam_VP_texture;

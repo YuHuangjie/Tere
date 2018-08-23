@@ -28,6 +28,7 @@ OBJRender::OBJRender(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
 	vertexArrays(),
 	vertexBuffers(),
 	elementBuffers(),
+	vColorBuffers(),
 	attrib(attrib),
 	interpCameras()
 {
@@ -115,6 +116,7 @@ OBJRender::OBJRender(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
 OBJRender::~OBJRender()
 {
 	glDeleteBuffers(nMeshes, vertexBuffers.data());
+	glDeleteBuffers(nMeshes, vColorBuffers.data());
 	glDeleteBuffers(nMeshes, elementBuffers.data());
 	glDeleteVertexArrays(nMeshes, vertexArrays.data());
 	glDeleteProgram(scene_program_id);
@@ -309,10 +311,12 @@ bool OBJRender::TransferMeshToGL(const string &meshFile)
 	vertexArrays = vector<GLuint>(nMeshes, 0);
 	vertexBuffers = vector<GLuint>(nMeshes, 0);
 	elementBuffers = vector<GLuint>(nMeshes, 0);
+	vColorBuffers = vector<GLuint>(nMeshes, 0);
 
 	glGenVertexArrays(nMeshes, vertexArrays.data());
 	glGenBuffers(nMeshes, vertexBuffers.data());
 	glGenBuffers(nMeshes, elementBuffers.data());
+	glGenBuffers(nMeshes, vColorBuffers.data());
 	indexSizes.clear();
 
 	for (int i = 0; i < nMeshes; ++i)
@@ -323,8 +327,24 @@ bool OBJRender::TransferMeshToGL(const string &meshFile)
 		const int *indices = geometry.GetIndices().data();
 		int numIndex = geometry.GetIndices().size();
 
-		LOGD("   Item %d: %d faces, %d vertices\n", i, 
+		LOGD("   Item %02d: faces: %d\n"
+			 "            vertices: %d\n", i,
 			numIndex / 3, numVertices / 3);
+
+		// Get vertex color
+		vector<float> fcolors;
+		int numColors = 0;
+		if (geometry.HasColors()) {
+			const vector<uint8_t> &colors = geometry.GetColors();
+			fcolors = vector<float>(colors.begin(), colors.end());
+			std::for_each(fcolors.begin(), fcolors.end(), 
+				[](float &c) { c = c / 255.f; });
+			numColors = fcolors.size();
+			LOGI("            colors: %d\n", numColors / 3);
+		}
+		else {
+			LOGI("            colors: 0\n");
+		}
 
 		// Bind VAO
 		glBindVertexArray(vertexArrays[i]);
@@ -334,6 +354,14 @@ bool OBJRender::TransferMeshToGL(const string &meshFile)
 		glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(float), 
 			vertices, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		if (numColors > 0) {
+			glBindBuffer(GL_ARRAY_BUFFER, vColorBuffers[i]);
+			glBufferData(GL_ARRAY_BUFFER, numColors * sizeof(float),
+				fcolors.data(), GL_STATIC_DRAW);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+			glEnableVertexAttribArray(1);
+		}
 
 		// Bind EBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffers[i]);

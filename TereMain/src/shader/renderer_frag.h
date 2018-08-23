@@ -17,6 +17,7 @@ const char *renderer_fragment_coder =
 
 "in highp vec4 vertex_location;   \n"
 "in highp float[12] depthNoOccul; \n"
+"in highp vec3 vColor; \n"
 
 "uniform highp int[12] interpIndices; \n"
 "uniform highp float[12] interpWeights; \n"
@@ -208,7 +209,8 @@ const char *renderer_fragment_coder =
 "       color = color / total_weight;\n"
 "	}\n"
 "   else {\n"
-"		color = missColor; \n"
+//"		color = missColor; \n"
+"		color.xyz = vColor; \n"
 "	}\n"
 
 "	//color = vec4(0, 0, 0, 1);\n"
