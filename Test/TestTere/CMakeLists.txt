@@ -27,7 +27,7 @@ link_directories("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
 add_executable(
 		TestTere
-		TestCircleUI.cpp
+		TestQuaternionInterp.cpp
 		)
 add_dependencies(TestTere TereMain)
 

@@ -43,9 +43,8 @@ $(LOCAL_PATH)/../../Dependencies/jpegturbo/include \
 $(LOCAL_PATH)/../../Dependencies/webp/include \
 
 LOCAL_SRC_FILES := ../../TereMain/src/ArcballUI.cpp \
-../../TereMain/src/CircleUI.cpp \
 ../../TereMain/src/Interpolation.cpp \
-../../TereMain/src/InterpStrategy.cpp \
+../../TereMain/src/Strategy.cpp \
 ../../TereMain/src/LFEngine.cpp \
 ../../TereMain/src/LFEngineImpl.cpp \
 ../../TereMain/src/LFLoader.cpp \

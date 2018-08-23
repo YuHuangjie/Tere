@@ -163,15 +163,6 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 	}
 	else { throw runtime_error("no camera_radius found in profile"); }
 
-	search = profile.find("camera_up");
-	if (search != profile.end()) {
-		glm::vec3 up;
-		istringstream iss(search->second);
-		iss >> up.x >> up.y >> up.z;
-		attrib.ref_camera_up = up;
-	}
-	else { throw runtime_error("no camera_up found in profile"); }
-
 	// check light field configuration is consistent
 	if (attrib.ref_cameras.size() != attrib.N_REF_CAMERAS) {
 		throw runtime_error("light field configration is inconsistent");
@@ -184,12 +175,32 @@ void LFLoader::LoadProfile(const string &profile_prefix,
 	}
 	else { throw runtime_error("no obj file found"); }
 
-	/* read reference camera mesh obj name */
-	search = profile.find("camera_mesh");
-	if (search != profile.end()) { 
-		attrib.camera_mesh_name = profile_prefix + search->second; 
+	// read ui mode
+	search = profile.find("mode");
+	if (search != profile.end()) {
+		attrib._uiMode = search->second;
 	}
-	else { throw runtime_error("no camera_mesh file found"); }
+	else { throw runtime_error("no ui mode found"); }
+
+	// ui sub-parameters
+	if (attrib._uiMode == "linear") {
+		search = profile.find("rows");
+		if (search != profile.end()) {
+			attrib._rows = std::atoi(search->second.c_str());
+		}
+		else { throw runtime_error("no rows found when mode=linear"); }
+	}
+	else if (attrib._uiMode == "arcball") {
+		search = profile.find("camera_mesh");
+		if (search != profile.end()) {
+			attrib.camera_mesh_name = profile_prefix + search->second;
+		}
+		else { throw runtime_error("no camera_mesh file found"); }
+	}
+	else {
+		throw runtime_error("unknown ui mode");
+	}
+
 }
 
 bool LFLoader::OnDecompressing(const int thread_id, const int thread_nr)

@@ -14,16 +14,17 @@ struct LightFieldAttrib
 		ref_cameras_V(),
 		obj_file(),
 		ref_camera_center(),
-		ref_camera_up(),
 		ref_camera_radius(0.f),
-		camera_mesh_name(),
 		glnear(0.f),
 		glfar(0.f),
 		image_list(),
 		width_H(0),
 		height_H(0),
 		width_L(0),
-		height_L(0)
+		height_L(0),
+		_uiMode(""),
+		camera_mesh_name(""),
+		_rows(0)
 	{	}
 
 	int N_REF_CAMERAS;	            // number of reference cameras
@@ -35,9 +36,7 @@ struct LightFieldAttrib
 	std::string obj_file;			// object mesh
 
 	glm::vec3 ref_camera_center;    // ref cameras' center
-	glm::vec3 ref_camera_up;	// ref cameras' normal
 	float ref_camera_radius;        // ref cameras' radius
-	std::string camera_mesh_name;   // ref camera mesh
 
 	float glnear;    // near plane
 	float glfar;     // far plane
@@ -46,6 +45,10 @@ struct LightFieldAttrib
 
 	unsigned int width_H, height_H;   // high resolution image size
 	unsigned int width_L, height_L;   // low resolution image size
+
+	std::string _uiMode;
+	std::string camera_mesh_name;   // ref camera mesh (_uimode="arcball")
+	size_t _rows;		// linear rows (_uimode="linear")
 };
 
 #endif

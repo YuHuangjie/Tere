@@ -4,9 +4,8 @@
 
 #include "LFEngineImpl.h"
 #include "common/Log.hpp"
-#include "CircleUI.h"
 #include "LinearUI.h"
-#include "MultiLinearUI.h"
+#include "ArcballUI.h"
 #include "WeightedCamera.h"
 #include "Strategy.h"
 
@@ -64,46 +63,34 @@ void LFEngineImpl::InitEngine(const string &profile)
 
 		// Transfer light field textures
 		gOBJRender->SetLightFieldTexs(rgbds);
-		//glDeleteTextures(rgbs.size(), rgbs.data());
 
 		// Set rendering camera
 		LOGI("ENGINE: setting rendering camera\n");
-
-		glm::vec3 center = attrib.ref_camera_center;
-		const float r = attrib.ref_camera_radius;
-		glm::vec3 up = attrib.ref_camera_up;
-		glm::vec3 location = glm::vec3(center.x,
-			center.y - r * up.z / std::sqrt(up.y*up.y + up.z*up.z),
-			center.z + r * up.y / std::sqrt(up.y*up.y + up.z*up.z));
-
-
-
+		
 		gRenderCamera.SetIntrinsic(attrib.ref_cameras[0].GetIntrinsic());
 
 		// Set up user interface
-		// 
-		// Circle UI
-		//gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
-		//ui = new CircleUI(up, center);
+		if (attrib._uiMode == "linear") {
+			// Linear UI
+			gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
+			ui = new LinearUI(attrib.ref_cameras, attrib._rows, 0);
+		}
+		else if (attrib._uiMode == "arcball") {
+			// arcball UI
+			float r = attrib.ref_camera_radius;
+			glm::vec3 center = attrib.ref_camera_center;
 
-		// Linear UI
-		//gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
-		//ui = new LinearUI(attrib.ref_cameras, 0);
+			glm::vec3 location = glm::vec3(r*sin(glm::pi<float>() / 2)*cos(0),
+				r*sin(glm::pi<float>() / 2)*sin(0),	
+				r*cos(glm::pi<float>() / 2) ) + center;
+			glm::vec3 _up = glm::vec3(0, 0, 1);
+			glm::vec3 lookat = glm::normalize(center - location);
+			glm::vec3 right = glm::cross(lookat, _up);
+			glm::vec3 up = glm::cross(right, lookat);
 
-		// MultiLinear UI
-		gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
-		ui = new MultiLinearUI(attrib.ref_cameras, 20, 0);
-
-		// arcball UI
-		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
-		render_cam_r*sin(glm::pi<float>() / 2)*sin(0),
-		render_cam_r*cos(glm::pi<float>() / 2)) + look_center;
-		glm::vec3 _up = glm::vec3(0, 0, 1);
-		glm::vec3 lookat = (look_center - location) / glm::length(look_center - location);
-		glm::vec3 right = glm::cross(lookat, _up);
-		glm::vec3 up = glm::cross(right, lookat);
-		up = glm::normalize(up);*/
-		//ui = new ArcballUI(up, look_center);
+			gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
+			ui = new ArcballUI(up, center);
+		}
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());
@@ -123,8 +110,8 @@ void LFEngineImpl::Draw(void)
 		size_t nInterp = 3;
 		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
 		vector<size_t> indices;
-		if (ui->Name() == "multilinear") {
-			indices = static_cast<MultiLinearUI*>(ui)->HintInterp();
+		if (ui->Name() == "linear") {
+			indices = static_cast<LinearUI*>(ui)->HintInterp();
 		}
 		else {
 			indices = _indexStrgFunc(attrib.ref_cameras,
