@@ -12,8 +12,10 @@
 class LFEngineImpl
 {
 public:
-	typedef vector<WeightedCamera>(*InterpStrgFunc)(const vector<Camera>&ref,
+	typedef vector<size_t>(*IndexStrgFunc) (const vector<Camera> &ref,
 		const Camera &vir, const glm::vec3 &p, const size_t maxn);
+	typedef vector<float>(*WeighttStrgFunc) (const vector<Camera> &ref,
+		const Camera &vir, const glm::vec3 &p, const vector<size_t> &indices);
 
 	explicit LFEngineImpl(const string &profile);
 	LFEngineImpl(const LFEngineImpl &) = delete;
@@ -80,7 +82,10 @@ private:
 
 	UserInterface *ui;   // Used for user interaction
 
-	InterpStrgFunc _interpStrgFunc;
+	// strategy for searching interpolation cameras
+	IndexStrgFunc _indexStrgFunc;
+	// strategy for weighing interpolation cameras
+	WeighttStrgFunc _weightStrgFunc;
 };
 
 #endif

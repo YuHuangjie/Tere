@@ -1,13 +1,14 @@
-#include "LFEngineImpl.h"
+#include <chrono>
+#include <cstdlib>
+#include <algorithm>
 
+#include "LFEngineImpl.h"
 #include "common/Log.hpp"
 #include "CircleUI.h"
 #include "LinearUI.h"
 #include "MultiLinearUI.h"
 #include "WeightedCamera.h"
-#include "InterpStrategy.h"
-#include <chrono>
-#include <cstdlib>
+#include "Strategy.h"
 
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -21,7 +22,8 @@ LFEngineImpl::LFEngineImpl(const string &profile)
 	fps(0),
 	frames(0),
 	ui(nullptr),
-	_interpStrgFunc(DefaultInterpStrgFunc)
+	_indexStrgFunc(DefaultIndexStrgFunc),
+	_weightStrgFunc(DefaultWeightStrgFunc)
 {
 	InitEngine(profile);
 }
@@ -90,7 +92,7 @@ void LFEngineImpl::InitEngine(const string &profile)
 
 		// MultiLinear UI
 		gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
-		ui = new MultiLinearUI(attrib.ref_cameras, 3, 0);
+		ui = new MultiLinearUI(attrib.ref_cameras, 20, 0);
 
 		// arcball UI
 		/*glm::vec3 location = glm::vec3(render_cam_r*sin(glm::pi<float>() / 2)*cos(0),
@@ -118,10 +120,24 @@ void LFEngineImpl::Draw(void)
 		gOBJRender->SetVirtualCamera(gRenderCamera);
 
 		// select which cameas and weights to interpolate
+		size_t nInterp = 3;
 		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
-		gOBJRender->SetInterpCameras(_interpStrgFunc(
-			attrib.ref_cameras, gRenderCamera,
-			attrib.ref_camera_center, 3));
+		vector<size_t> indices;
+		if (ui->Name() == "multilinear") {
+			indices = static_cast<MultiLinearUI*>(ui)->HintInterp();
+		}
+		else {
+			indices = _indexStrgFunc(attrib.ref_cameras,
+				gRenderCamera, attrib.ref_camera_center, nInterp);
+		}
+		vector<float> weights = _weightStrgFunc(attrib.ref_cameras,
+			gRenderCamera, attrib.ref_camera_center, indices);
+		nInterp = std::min(indices.size(), weights.size());
+
+		gOBJRender->ClearInterpCameras();
+		for (size_t i = 0; i < indices.size(); ++i) {
+			gOBJRender->AddInterpCameras(WeightedCamera(indices[i], weights[i]));
+		}
 
 		break;
 	}
@@ -130,7 +146,8 @@ void LFEngineImpl::Draw(void)
 		gOBJRender->SetVirtualCamera(attrib.ref_cameras[_fixRef]);
 
 		// select a fixed camera for interpolation
-		gOBJRender->SetInterpCameras(WeightedCamera(
+		gOBJRender->ClearInterpCameras();
+		gOBJRender->AddInterpCameras(WeightedCamera(
 			static_cast<int>(_fixRef), 1.0));
 		break;
 	}
@@ -188,12 +205,6 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 		break;
 	case LEAVE:
 		gRenderCamera = ui->Leave(sx, sy, gRenderCamera);
-		if (ui->Name() == "linear") {
-			SetLocationOfReferenceCamera(static_cast<LinearUI*>(ui)->GetNearestRef());
-		}
-		else if (ui->Name() == "multilinear") {
-			SetLocationOfReferenceCamera(static_cast<MultiLinearUI*>(ui)->GetNearestRef());
-		}
 		//gOBJRender->SetVirtualCamera(gRenderCamera);
 		//gOBJRender->ReplaceHighTexture();
 		//gOBJRender->UseHighTexture(true);

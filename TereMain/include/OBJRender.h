@@ -51,8 +51,8 @@ public:
 	void SetLightFieldTexs(const vector<GLuint> &lfTexs);
 
 	// Set interpolation cameras
-	bool SetInterpCameras(const vector<WeightedCamera> &cameras);
-	bool SetInterpCameras(const WeightedCamera &camera);
+	void ClearInterpCameras();
+	bool AddInterpCameras(const WeightedCamera &camera);
 
 	// set virtual camera 
 	void SetVirtualCamera(const Camera &);

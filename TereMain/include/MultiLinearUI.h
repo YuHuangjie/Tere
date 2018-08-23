@@ -39,7 +39,9 @@ public:
 	virtual void Touch(const double x, const double y) override;
 	virtual Camera Leave(const double x, const double y, const Camera &view) override;
 	virtual Camera Move(const double x, const double y, const Camera &view) override;
-	size_t GetNearestRef() const;
+
+	// hint interpolation cameras
+	vector<size_t> HintInterp() const;
 
 protected:
 	const vector<Camera>& _camList;

@@ -541,15 +541,13 @@ void OBJRender::SetVirtualCamera(const Camera &camera)
 	//SearchInterpCameras();
 }
 
-bool OBJRender::SetInterpCameras(const vector<WeightedCamera> &cameras)
-{
-	interpCameras = cameras;
-	return true;
-}
-
-bool OBJRender::SetInterpCameras(const WeightedCamera &camera)
+void OBJRender::ClearInterpCameras()
 {
 	interpCameras.clear();
+}
+
+bool OBJRender::AddInterpCameras(const WeightedCamera &camera)
+{
 	interpCameras.push_back(camera);
 	return true;
 }

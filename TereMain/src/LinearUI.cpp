@@ -106,11 +106,6 @@ std::string LinearUI::Name() const
 	return "linear";
 }
 
-size_t LinearUI::GetNearestRef() const
-{
-	return _nearest;
-}
-
 float NormalizePoint(const float p, const float list)
 {
 	float result = p;

@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
+#include <algorithm>
 
 #include "MultiLinearUI.h"
 #include "camera/Camera.hpp"
@@ -200,9 +201,29 @@ Camera MultiLinearUI::Move(const double x, const double y, const Camera &view)
 	}
 }
 
-size_t MultiLinearUI::GetNearestRef() const
+vector<size_t> MultiLinearUI::HintInterp() const
 {
-	return _nearest;
+	vector<size_t> hint;
+
+	int left = static_cast<int>(std::floor(_pCol));
+	int right = static_cast<int>(std::ceil(_pCol));
+	if (left == -1) { left = _cols - 1; }
+	if (right == -1) { right = _cols - 1; }
+
+	int top = static_cast<int>(std::floor(_pRow));
+	int bottom = static_cast<int>(std::ceil(_pRow));
+
+	hint.push_back(top * _cols + left);
+	hint.push_back(top * _cols + right);
+	hint.push_back(bottom * _cols + left);
+	hint.push_back(bottom * _cols + right);
+	
+	// remove duplicates
+	std::sort(hint.begin(), hint.end());
+	auto last = std::unique(hint.begin(), hint.end());
+	hint.erase(last, hint.end());
+
+	return hint;
 }
 
 //float NormalizePoint(const float p, const float list)
