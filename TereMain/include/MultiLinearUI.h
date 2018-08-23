@@ -7,7 +7,7 @@
 
 using std::vector;
 
-enum Direction : unsigned int;
+enum Direction : int;
 enum Major : unsigned int;
 
 // User interface for multi-row image sequences
@@ -21,6 +21,7 @@ public:
 	//      And a virtual camera being at second rows third column when p=n+2
 	//		P must be consistent with the initial pose of virtual camera to 
 	//		render rightly.
+	//      When user drag leftward, p increases, unless _rowReversed is set.
 	// 
 	// |____|____|____|......|
 	// 0    1    2    3  .. n-1 
@@ -52,6 +53,7 @@ protected:
 	float _pRow;		// row pointer to the layout
 	float _pCol;		// col pointer to the layout
 	Direction _direction;
+	bool _rowReversed;
 	Major _major;
 	bool _majorLock;	// major shouldn't change through interaction
 	size_t _nearest;	// nearest reference camera

@@ -11,11 +11,22 @@ LinearUI::LinearUI(const vector<Camera> &camList, const int p)
 	_py(0.0),
 	_cx(0.0),
 	_cy(0.0),
-	_point(p),
+	_point(static_cast<float>(p)),
 	_direction(1),
+	_rowReversed(false),
 	_nearest(0)
 {
 	SetResolution(0, 0);
+
+	if (_nCams >= 2) {
+		// reverse list if the sequence of cameras doesn't match the direction
+		// in the diagram
+		glm::vec4 cam2InCam1 = _camList[0].GetViewMatrix() * glm::vec4(
+			_camList[1].GetPosition(), 1.0f);
+		if (cam2InCam1.x < 0.f) {
+			_rowReversed = true;
+		}
+	}
 }
 
 void LinearUI::Touch(const double x, const double y)
@@ -29,15 +40,17 @@ Camera LinearUI::Leave(const double x, const double y, const Camera &view)
 	_activated = false;
 	_px = x;
 	
-	if (_direction == 1) {
-		int left = static_cast<int>(std::floor(_point));
+	if (_direction == -1) {
+		size_t left = static_cast<int>(std::floor(_point));
 		if (left == -1) { left = _nCams - 1; }
 		_nearest = left;
+		_point = static_cast<float>(left);
 		return _camList[left];
 	}
 	else {
-		int right = static_cast<int>(std::ceil(_point));
+		size_t right = static_cast<int>(std::ceil(_point));
 		_nearest = right;
+		_point = static_cast<float>(right);
 		return _camList[right];
 	}
 }
@@ -53,12 +66,13 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 
 	_cx = x;
 	_direction = _cx > _px ? -1 : 1;
+	_direction *= (_rowReversed ? -1 : 1);
 
 	// a full drag (from one end of the screen to the other) covers half list
 	float aFullDragCover = _camList.size() / 2.f;
 	float cover = (_cx - _px) / screen_width * aFullDragCover;
 	
-	_point += cover;
+	_point += cover * (_rowReversed ? 1 : -1);
 	_point = NormalizePoint(_point, _nCams);
 	
 	// find left and right reference camera

@@ -15,6 +15,7 @@ public:
 	// the same as the 3rd reference camera when p=2.
 	// P must be consistent with the initial pose of virtual camera to 
 	// render rightly. Therefore, p is normally an integer.
+	// When user drag leftward, p increases, unless _rowReversed is set.
 	// 
 	// |___|___|___|......|___|
 	// 0   1   2   3  .. n-1  n   
@@ -38,6 +39,7 @@ protected:
 	double _cx, _cy;
 	float _point;		// point int the list
 	int _direction;		// sliding direction
+	bool _rowReversed;
 	size_t _nearest;	// nearest reference camera
 };
 

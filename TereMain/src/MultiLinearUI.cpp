@@ -11,10 +11,10 @@ using std::runtime_error;
 
 extern float NormalizePoint(const float p, const float list);
 
-enum Direction : unsigned int
+enum Direction : int
 {
-	NEGTIVE,
-	POSITIVE
+	NEGTIVE = -1,
+	POSITIVE = 1
 };
 
 enum Major : unsigned int
@@ -38,6 +38,7 @@ MultiLinearUI::MultiLinearUI(const vector<Camera> &camList,
 	_pRow(0.f),
 	_pCol(0.f),
 	_direction(NEGTIVE),
+	_rowReversed(false),
 	_major(ROTATE_ALONG_ROW),
 	_nearest(0)
 {
@@ -57,6 +58,16 @@ MultiLinearUI::MultiLinearUI(const vector<Camera> &camList,
 	_pRow = static_cast<float>(p / _cols);
 	_pCol = static_cast<float>(p % _cols);
 	_nearest = p;
+
+	if (_cols >= 2) {
+		// reverse list if the sequence of cameras doesn't match the direction
+		// in the diagram
+		glm::vec4 cam2InCam1 = _camList[0].GetViewMatrix() * glm::vec4(
+			_camList[1].GetPosition(), 1.0f);
+		if (cam2InCam1.x < 0.f) {
+			_rowReversed = true;
+		}
+	}
 
 	SetResolution(0, 0);
 }
@@ -126,12 +137,13 @@ Camera MultiLinearUI::Move(const double x, const double y, const Camera &view)
 	if (_major == ROTATE_ALONG_COLUMN) {
 		_cx = x;
 		_direction = _cx > _px ? NEGTIVE : POSITIVE;
+		_direction = static_cast<Direction>(_direction * (_rowReversed ? -1 : 1));
 
 		// a full drag (from one end of the screen to the other) covers half list
 		float aFullDrag = _cols / 2.f;
 		float cover = (_cx - _px) / screen_width * aFullDrag;
 
-		_pCol += cover;
+		_pCol += cover * (_rowReversed ? 1 : -1);
 		_pCol = NormalizePoint(_pCol, _cols);
 
 		// find left and right reference camera
@@ -165,7 +177,7 @@ Camera MultiLinearUI::Move(const double x, const double y, const Camera &view)
 		float aFullDrag = _rows;
 		float cover = (_cy - _py) / screen_height * aFullDrag;
 
-		_pRow += cover;
+		_pRow -= cover;
 		if (_pRow < 0.f) { _pRow = 0.f; }
 		else if (_pRow > _rows - 1) { _pRow = _rows - 1; }
 
