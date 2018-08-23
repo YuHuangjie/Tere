@@ -291,7 +291,19 @@ GLuint OBJRender::AppendDepth(GLuint rgb, unsigned int width, unsigned int heigh
 
 bool OBJRender::TransferMeshToGL(const string &meshFile)
 {
-	Geometry geometry = Geometry::FromObj(meshFile);
+	if (meshFile.length() < 5) {
+		throw runtime_error(string(" file path too short: ") + meshFile);
+	}
+
+	std::string ext3 = meshFile.substr(meshFile.length() - 3, 3);
+	Geometry geometry;
+
+	if (ext3 == "obj" || ext3 == "OBL") {
+		geometry = Geometry::FromObj(meshFile);
+	}
+	else if (ext3 == "ply" || ext3 == "PLY") {
+		geometry = Geometry::FromPly(meshFile);
+	}
 
 	nMeshes = 1;
 	vertexArrays = vector<GLuint>(nMeshes, 0);

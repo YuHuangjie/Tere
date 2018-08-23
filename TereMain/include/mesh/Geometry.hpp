@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "tiny_obj_loader.h"
 
 enum DrawOption
 {
@@ -16,6 +15,7 @@ class Geometry
 public:
 	Geometry();
 
+	static Geometry FromPly(const std::string &filename);
 	static Geometry FromObj(const std::string &filename);
 
 	inline DrawOption GetDrawOption(void) const { 
@@ -39,6 +39,7 @@ protected:
 	std::vector<float> mVertices;
 	std::vector<float> mNormals;
 	std::vector<float> mTexcoords;
+	std::vector<uint8_t> mColors;
 	std::vector<int32_t> mIndices;
 };
 

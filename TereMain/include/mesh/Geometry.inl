@@ -1,4 +1,6 @@
 #include "Geometry.hpp"
+#include "tiny_obj_loader.h"
+#include "PlyUtility.h"
 
 inline Geometry::Geometry() 
 {}
@@ -100,5 +102,19 @@ inline Geometry Geometry::FromObj(const std::string &filename)
 		geometry.mDrawOption = DrawOption::Array;
 	}
 
+	return geometry;
+}
+
+inline Geometry Geometry::FromPly(const std::string &filename)
+{
+	Geometry geometry;
+	bool result = ReadPly(filename, geometry.mVertices, geometry.mNormals,
+		geometry.mTexcoords, geometry.mColors, geometry.mIndices);
+
+	if (!result) {
+		return Geometry();
+	}
+
+	geometry.mDrawOption = DrawOption::Element;
 	return geometry;
 }
