@@ -1,5 +1,5 @@
-#ifndef RENDER_H
-#define RENDER_H
+#ifndef RENDERER_H
+#define RENDERER_H
 
 #include "common/Common.hpp"
 #if GL_WIN || GL_OSX
@@ -29,13 +29,13 @@ using glm::mat4;
 using glm::vec3;
 using glm::ivec4;
 
-class OBJRender
+class Renderer
 {
 public:
-	OBJRender(const LightFieldAttrib &, int fbWidth, int fbHeight);
-	OBJRender(const OBJRender &) = delete;
-	OBJRender& operator=(const OBJRender &) = delete;
-	~OBJRender();
+	Renderer(const LightFieldAttrib &, int fbWidth, int fbHeight);
+	Renderer(const Renderer &) = delete;
+	Renderer& operator=(const Renderer &) = delete;
+	~Renderer();
 
 	// render method
 	int render(const vector<int> &viewport);

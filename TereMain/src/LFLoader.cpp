@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <future>
 #include "LFLoader.h"
-#include "OBJRender.h"
+#include "Renderer.h"
 #include "common/CommonIO.hpp"
 #include "image/ImageIO.hpp"
 
@@ -252,7 +252,7 @@ bool LFLoader::Decompress(const int no_thread)
 	return true;
 }
 
-vector<GLuint> LFLoader::GenerateRGBDTextures(const unique_ptr<OBJRender> &renderer)
+vector<GLuint> LFLoader::GenerateRGBDTextures(const unique_ptr<Renderer> &renderer)
 {
 	int image_num = attrib.N_REF_CAMERAS;
 	int texture_width = attrib.width_L;

@@ -49,9 +49,11 @@ LOCAL_SRC_FILES := ../../TereMain/src/ArcballUI.cpp \
 ../../TereMain/src/LFEngineImpl.cpp \
 ../../TereMain/src/LFLoader.cpp \
 ../../TereMain/src/LinearUI.cpp \
-../../TereMain/src/OBJRender.cpp \
+../../TereMain/src/Renderer.cpp \
 ../../TereMain/src/RayTracer.cpp \
 ../../TereMain/src/UserInterface.cpp \
+../../TereMain/src/PlyUtility.cpp \
+../../TereMain/src/tinyply.cpp \
 
 LOCAL_STATIC_LIBRARIES := jpeg webp cpufeatures
 

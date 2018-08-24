@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <numeric>
 #include <list>
-#include "OBJRender.h"
+#include "Renderer.h"
 #include "common/Shader.hpp"
 #include "image/ImageIO.hpp"
 #include "mesh/Geometry.hpp"
@@ -21,7 +21,7 @@ using namespace glm;
 using namespace std;
 
 
-OBJRender::OBJRender(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
+Renderer::Renderer(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
 	: nMeshes(0),
 	indexSizes(),
 	scene_center(0.f),
@@ -113,7 +113,7 @@ OBJRender::OBJRender(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
 	useHighTexture = false; 
 }
 
-OBJRender::~OBJRender()
+Renderer::~Renderer()
 {
 	glDeleteBuffers(nMeshes, vertexBuffers.data());
 	glDeleteBuffers(nMeshes, vColorBuffers.data());
@@ -128,7 +128,7 @@ OBJRender::~OBJRender()
 	glDeleteTextures(lightFieldTexs.size(), lightFieldTexs.data());
 }
 
-int OBJRender::render(const vector<int> &viewport)
+int Renderer::render(const vector<int> &viewport)
 {	
 	/*
 	 * When user interacts (by mouse or finger), render with low resolution
@@ -207,7 +207,7 @@ int OBJRender::render(const vector<int> &viewport)
 	return 0;
 }
 
-void OBJRender::ReplaceHighTexture()
+void Renderer::ReplaceHighTexture()
 {
     // Decode high resolution images
     string image_file;
@@ -244,7 +244,7 @@ void OBJRender::ReplaceHighTexture()
     delete[] buf;
 }
 
-GLuint OBJRender::AppendDepth(GLuint rgb, unsigned int width, unsigned int height,
+GLuint Renderer::AppendDepth(GLuint rgb, unsigned int width, unsigned int height,
 	const mat4 &VP, const mat4 &V)
 {
 	// Generate new texture and attach to framebuffer
@@ -291,7 +291,7 @@ GLuint OBJRender::AppendDepth(GLuint rgb, unsigned int width, unsigned int heigh
 	return rgbd;
 }
 
-bool OBJRender::TransferMeshToGL(const string &meshFile)
+bool Renderer::TransferMeshToGL(const string &meshFile)
 {
 	if (meshFile.length() < 5) {
 		throw runtime_error(string(" file path too short: ") + meshFile);
@@ -379,7 +379,7 @@ bool OBJRender::TransferMeshToGL(const string &meshFile)
 	return true;
 }
 
-bool OBJRender::TransferRefCameraToGL(const vector<glm::mat4> &refVP, 
+bool Renderer::TransferRefCameraToGL(const vector<glm::mat4> &refVP, 
 	const vector<glm::mat4> refV)
 {
 	if (refVP.size() != refV.size()) {
@@ -437,7 +437,7 @@ bool OBJRender::TransferRefCameraToGL(const vector<glm::mat4> &refVP,
 	return true;
 }
 
-bool OBJRender::LoadCameraMesh(const string &cameraMeshName)
+bool Renderer::LoadCameraMesh(const string &cameraMeshName)
 {
 	ifstream camera_mesh_file(cameraMeshName);
 
@@ -479,7 +479,7 @@ bool OBJRender::LoadCameraMesh(const string &cameraMeshName)
 	return true;
 }
 
-void OBJRender::SearchInterpCameras(void)
+void Renderer::SearchInterpCameras(void)
 {
 	// Prepare directions from reference camera to scene_center
 	if (ref_camera_dirs.empty()) {
@@ -564,7 +564,7 @@ void OBJRender::SearchInterpCameras(void)
 	}
 }
 
-void OBJRender::SetLightFieldTexs(const vector<GLuint> &lfTexs)
+void Renderer::SetLightFieldTexs(const vector<GLuint> &lfTexs)
 {
 	if (lfTexs.size() != attrib.N_REF_CAMERAS) {
 		throw runtime_error("set wrong light field textures");
@@ -573,7 +573,7 @@ void OBJRender::SetLightFieldTexs(const vector<GLuint> &lfTexs)
 	lightFieldTexs = lfTexs;
 }
 
-void OBJRender::SetVirtualCamera(const Camera &camera)
+void Renderer::SetVirtualCamera(const Camera &camera)
 {
 	virtual_camera = camera;
 	View = camera.GetViewMatrix();
@@ -581,18 +581,18 @@ void OBJRender::SetVirtualCamera(const Camera &camera)
 	//SearchInterpCameras();
 }
 
-void OBJRender::ClearInterpCameras()
+void Renderer::ClearInterpCameras()
 {
 	interpCameras.clear();
 }
 
-bool OBJRender::AddInterpCameras(const WeightedCamera &camera)
+bool Renderer::AddInterpCameras(const WeightedCamera &camera)
 {
 	interpCameras.push_back(camera);
 	return true;
 }
 
-//void OBJRender::GetTextureData(GLuint tex, unsigned char * image)
+//void Renderer::GetTextureData(GLuint tex, unsigned char * image)
 //{
 //#ifdef GL_WIN || GL_OSX
 //    glBindTexture(GL_TEXTURE_2D, tex);
@@ -600,11 +600,11 @@ bool OBJRender::AddInterpCameras(const WeightedCamera &camera)
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 //    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 //#else 
-//#warning "OBJRender::GetTextureData not supported with OpenGL ES"
+//#warning "Renderer::GetTextureData not supported with OpenGL ES"
 //#endif
 //}
 
-//glm::vec3 OBJRender::CalcObjCenter(const vector<tinyobj::shape_t>&shapes)
+//glm::vec3 Renderer::CalcObjCenter(const vector<tinyobj::shape_t>&shapes)
 //{
 //	glm::vec3 ObjCenter(0.f);
 //	int numVertices = 0;
@@ -628,7 +628,7 @@ bool OBJRender::AddInterpCameras(const WeightedCamera &camera)
 //	return (ObjCenter);
 //}
 
-GLuint OBJRender::LoadShaders(const char * vertex_code, const char * fragment_code)
+GLuint Renderer::LoadShaders(const char * vertex_code, const char * fragment_code)
 {
 	// Compile shaders
 	Shader shader(vertex_code, fragment_code);

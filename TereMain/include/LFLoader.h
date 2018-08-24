@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "LightFieldAttrib.h"
-#include "OBJRender.h"
+#include "Renderer.h"
 
 using std::string;
 using std::vector;
@@ -42,7 +42,7 @@ public:
 		const map<string, string> &profile);
 
 	bool Decompress(const int no_thread);
-	vector<GLuint> GenerateRGBDTextures(const unique_ptr<OBJRender> &);
+	vector<GLuint> GenerateRGBDTextures(const unique_ptr<Renderer> &);
 
 	inline LightFieldAttrib& GetLightFieldAttrib(void) { 
 		return attrib;

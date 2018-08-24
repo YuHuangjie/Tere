@@ -16,7 +16,7 @@ LFEngineImpl::LFEngineImpl(const string &profile)
 	: _mode(INTERP),
 	_fixRef(0),
 	gLFLoader(nullptr),
-	gOBJRender(nullptr),
+	gRenderer(nullptr),
 	gRenderCamera(),
 	fps(0),
 	frames(0),
@@ -30,7 +30,7 @@ LFEngineImpl::LFEngineImpl(const string &profile)
 LFEngineImpl::~LFEngineImpl(void)
 {
 	gLFLoader.reset(nullptr);
-	gOBJRender.reset(nullptr);
+	gRenderer.reset(nullptr);
 	delete ui;
 	ui = nullptr;
 }
@@ -50,7 +50,7 @@ void LFEngineImpl::InitEngine(const string &profile)
 
 		// Initialize obj renderer
 		LOGI("ENGINE: preparing Renderer\n");
-		gOBJRender.reset(new OBJRender(attrib, attrib.width_H, attrib.height_H));
+		gRenderer.reset(new Renderer(attrib, attrib.width_H, attrib.height_H));
 
 		// Read light field textures
 		LOGI("ENGINE: decompressing images\n");
@@ -59,10 +59,10 @@ void LFEngineImpl::InitEngine(const string &profile)
 
 		// Append depth channel to each texture
 		LOGI("ENGINE: generating RGBD textures\n");
-		vector<GLuint> rgbds = gLFLoader->GenerateRGBDTextures(gOBJRender);
+		vector<GLuint> rgbds = gLFLoader->GenerateRGBDTextures(gRenderer);
 
 		// Transfer light field textures
-		gOBJRender->SetLightFieldTexs(rgbds);
+		gRenderer->SetLightFieldTexs(rgbds);
 
 		// Set rendering camera
 		LOGI("ENGINE: setting rendering camera\n");
@@ -104,7 +104,7 @@ void LFEngineImpl::Draw(void)
 {
 	switch (_mode) {
 	case INTERP: {
-		gOBJRender->SetVirtualCamera(gRenderCamera);
+		gRenderer->SetVirtualCamera(gRenderCamera);
 
 		// select which cameas and weights to interpolate
 		size_t nInterp = 3;
@@ -121,20 +121,20 @@ void LFEngineImpl::Draw(void)
 			gRenderCamera, attrib.ref_camera_center, indices);
 		nInterp = std::min(indices.size(), weights.size());
 
-		gOBJRender->ClearInterpCameras();
+		gRenderer->ClearInterpCameras();
 		for (size_t i = 0; i < indices.size(); ++i) {
-			gOBJRender->AddInterpCameras(WeightedCamera(indices[i], weights[i]));
+			gRenderer->AddInterpCameras(WeightedCamera(indices[i], weights[i]));
 		}
 
 		break;
 	}
 	case FIX: {
 		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
-		gOBJRender->SetVirtualCamera(attrib.ref_cameras[_fixRef]);
+		gRenderer->SetVirtualCamera(attrib.ref_cameras[_fixRef]);
 
 		// select a fixed camera for interpolation
-		gOBJRender->ClearInterpCameras();
-		gOBJRender->AddInterpCameras(WeightedCamera(
+		gRenderer->ClearInterpCameras();
+		gRenderer->AddInterpCameras(WeightedCamera(
 			static_cast<int>(_fixRef), 1.0));
 		break;
 	}
@@ -142,7 +142,7 @@ void LFEngineImpl::Draw(void)
 	}
 
 	// call underlying renderer
-	gOBJRender->render(viewport);
+	gRenderer->render(viewport);
 	++frames;
 }
 
@@ -154,7 +154,7 @@ void LFEngineImpl::StartFPSThread(void)
 
 void LFEngineImpl::VRFPS(void)
 {
-	while (gOBJRender)
+	while (gRenderer)
 	{
 		sleep_for(seconds(1));
 		fps = frames;
@@ -187,14 +187,14 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 		break;
 	case TOUCH:
 		ui->Touch(sx, sy);
-		gOBJRender->UseHighTexture(false);
+		gRenderer->UseHighTexture(false);
 		_mode = INTERP;
 		break;
 	case LEAVE:
 		gRenderCamera = ui->Leave(sx, sy, gRenderCamera);
-		//gOBJRender->SetVirtualCamera(gRenderCamera);
-		//gOBJRender->ReplaceHighTexture();
-		//gOBJRender->UseHighTexture(true);
+		//gRenderer->SetVirtualCamera(gRenderCamera);
+		//gRenderer->ReplaceHighTexture();
+		//gRenderer->UseHighTexture(true);
 		break;
 	default:
 		throw runtime_error("Setting false UI type");

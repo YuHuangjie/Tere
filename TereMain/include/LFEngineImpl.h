@@ -5,7 +5,7 @@
 #include <memory>
 #include "LFLoader.h"
 #include "camera/Camera.hpp"
-#include "OBJRender.h"
+#include "Renderer.h"
 #include "UserInterface.h"
 #include "UIType.h"
 
@@ -72,7 +72,7 @@ private:
 	unique_ptr<LFLoader> gLFLoader;
 
 	// Used for rendering
-	unique_ptr<OBJRender> gOBJRender;
+	unique_ptr<Renderer> gRenderer;
 
 	// Rendering camera object
 	Camera gRenderCamera;
