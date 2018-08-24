@@ -80,8 +80,7 @@ bool ReadPly(const std::string &filepath,
 		}
 	}
 	catch (exception &e) {
-		LOGW("Caught tinyply exception: %s\n", e.what());
-		return false;
+		throw e;
 	}
 	return true;
 }
