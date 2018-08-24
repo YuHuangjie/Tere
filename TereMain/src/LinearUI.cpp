@@ -212,7 +212,7 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 	}
 }
 
-vector<size_t> LinearUI::HintInterp() const
+vector<size_t> LinearUI::HintInterp()
 {
 	return _neighbors;
 }

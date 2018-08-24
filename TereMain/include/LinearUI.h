@@ -41,7 +41,7 @@ public:
 	virtual Camera Move(const double x, const double y, const Camera &view) override;
 
 	// hint interpolation cameras
-	vector<size_t> HintInterp() const;
+	virtual vector<size_t> HintInterp() override;
 
 protected:
 	const vector<Camera>& _camList;

@@ -10,6 +10,7 @@
 #define UserInterface_h
 
 #include <string>
+#include <vector>
 
 class Camera;
 
@@ -24,6 +25,7 @@ public:
     virtual void Touch(const double x, const double y) = 0;
 	virtual Camera Leave(const double x, const double y, const Camera &view) = 0;
 	virtual Camera Move(const double x, const double y, const Camera &view) = 0;
+	virtual std::vector<size_t> HintInterp() = 0;
 
 protected:
 	// screen size

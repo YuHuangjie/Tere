@@ -91,7 +91,8 @@ void LFEngineImpl::InitEngine(const string &profile)
 			glm::vec3 up = glm::cross(right, lookat);
 
 			gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
-			ui = new ArcballUI(up, center);
+			ui = new ArcballUI(up, center, attrib.ref_cameras, gRenderCamera, 
+				attrib.camera_mesh_name);
 		}
 	}
 	catch (runtime_error &e) {
@@ -124,14 +125,7 @@ void LFEngineImpl::_Draw(void)
 		// select which cameas and weights to interpolate
 		size_t nInterp = 3;
 		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
-		vector<size_t> indices;
-		if (ui->Name() == "linear") {
-			indices = static_cast<LinearUI*>(ui)->HintInterp();
-		}
-		else {
-			indices = _indexStrgFunc(attrib.ref_cameras,
-				gRenderCamera, attrib.ref_camera_center, nInterp);
-		}
+		vector<size_t> indices = ui->HintInterp();
 		vector<float> weights = _weightStrgFunc(attrib.ref_cameras,
 			gRenderCamera, attrib.ref_camera_center, indices);
 		nInterp = std::min(indices.size(), weights.size());

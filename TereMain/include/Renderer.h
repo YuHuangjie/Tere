@@ -63,8 +63,6 @@ public:
 private:
 	bool TransferMeshToGL(const string &meshFile);
 	bool TransferRefCameraToGL(const vector<mat4> &VP, const vector<mat4> V);
-	void SearchInterpCameras(void);
-	bool LoadCameraMesh(const string &);
 
 	// compile vertex, fragment shaders
 	GLuint LoadShaders(const char * vertex_code, const char * fragment_code);
@@ -117,15 +115,7 @@ private:
 
 	LightFieldAttrib attrib;  // light field attribute
 
-	// Camera mesh info
-	vector< vec3 > camera_vertices;   // camera mesh vertex
-	vector< ivec4> camera_quads;      // camera mesh indices
-
 	vector<WeightedCamera> interpCameras;  // interpolating cameras
-
-	vector<vec3> ref_camera_dirs;     // center points to each camera
-	vector<float> ref_camera_dists;   // distance between center and cameras
-	vector<int> ref_camera_index;     // camera sorted by angle distance
 	
 	// light field textures (typically low resolution)
 	vector<GLuint> lightFieldTexs;    
