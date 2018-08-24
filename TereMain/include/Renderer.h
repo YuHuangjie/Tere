@@ -72,8 +72,6 @@ private:
 	int nMeshes;                      // number of objects
 	vector<size_t> indexSizes;   // index count in each object
 	
-	vec3 scene_center;			// center position of scene
-
 	vector<GLuint> vertexArrays;			// VAO
 	vector<GLuint> vertexBuffers;          // VBO
 	vector<GLuint> elementBuffers;         // EBO

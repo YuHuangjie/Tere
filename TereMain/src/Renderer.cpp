@@ -24,7 +24,6 @@ using namespace std;
 Renderer::Renderer(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
 	: nMeshes(0),
 	indexSizes(),
-	scene_center(0.f),
 	vertexArrays(),
 	vertexBuffers(),
 	elementBuffers(),
@@ -332,14 +331,13 @@ bool Renderer::TransferMeshToGL(const string &meshFile)
 			numIndex / 3, numVertices / 3);
 
 		// Get vertex color
-		vector<float> fcolors;
 		int numColors = 0;
+		const uint8_t *colors = nullptr;
+
 		if (geometry.HasColors()) {
-			const vector<uint8_t> &colors = geometry.GetColors();
-			fcolors = vector<float>(colors.begin(), colors.end());
-			std::for_each(fcolors.begin(), fcolors.end(), 
-				[](float &c) { c = c / 255.f; });
-			numColors = fcolors.size();
+			const vector<uint8_t> &_colors = geometry.GetColors();
+			colors = _colors.data();
+			numColors = _colors.size();
 			LOGI("            colors: %d\n", numColors / 3);
 		}
 		else {
@@ -357,9 +355,9 @@ bool Renderer::TransferMeshToGL(const string &meshFile)
 
 		if (numColors > 0) {
 			glBindBuffer(GL_ARRAY_BUFFER, vColorBuffers[i]);
-			glBufferData(GL_ARRAY_BUFFER, numColors * sizeof(float),
-				fcolors.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+			glBufferData(GL_ARRAY_BUFFER, numColors * sizeof(uint8_t),
+				colors, GL_STATIC_DRAW);
+			glVertexAttribPointer(1, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0);
 			glEnableVertexAttribArray(1);
 		}
 
