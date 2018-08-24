@@ -8,6 +8,7 @@
 #include "ArcballUI.h"
 #include "WeightedCamera.h"
 #include "Strategy.h"
+#include "Interpolation.h"
 
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -22,7 +23,8 @@ LFEngineImpl::LFEngineImpl(const string &profile)
 	frames(0),
 	ui(nullptr),
 	_indexStrgFunc(DefaultIndexStrgFunc),
-	_weightStrgFunc(DefaultWeightStrgFunc)
+	_weightStrgFunc(DefaultWeightStrgFunc),
+	_lockUp(false)
 {
 	InitEngine(profile);
 }
@@ -101,6 +103,19 @@ void LFEngineImpl::InitEngine(const string &profile)
 }
 
 void LFEngineImpl::Draw(void)
+{
+	if (_lockUp) {
+		gRenderCamera = _gradientQueue.front();
+		_gradientQueue.pop_front();
+		if (_gradientQueue.empty()) {
+			_lockUp = false;
+		}
+	}
+
+	_Draw();
+}
+
+void LFEngineImpl::_Draw(void)
 {
 	switch (_mode) {
 	case INTERP: {
@@ -181,6 +196,10 @@ void LFEngineImpl::Resize(uint32_t width, uint32_t height)
 
 void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 {
+	if (_lockUp) {
+		return;
+	}
+
 	switch (type) {
 	case MOVE:
 		gRenderCamera = ui->Move(sx, sy, gRenderCamera);
@@ -190,15 +209,32 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 		gRenderer->UseHighTexture(false);
 		_mode = INTERP;
 		break;
-	case LEAVE:
-		gRenderCamera = ui->Leave(sx, sy, gRenderCamera);
+	case LEAVE: {
+		Camera toEnd = ui->Leave(sx, sy, gRenderCamera);
+		EnqueueGradients(gRenderCamera, toEnd);
+		_lockUp = true;
 		//gRenderer->SetVirtualCamera(gRenderCamera);
 		//gRenderer->ReplaceHighTexture();
 		//gRenderer->UseHighTexture(true);
 		break;
+	}
 	default:
 		throw runtime_error("Setting false UI type");
 		break;
+	}
+}
+
+void LFEngineImpl::EnqueueGradients(const Camera &start, const Camera &end)
+{
+	const size_t intervals = 15;
+	_gradientQueue.clear();
+
+	const Extrinsic &se = start.GetExtrinsic();
+	const Extrinsic &ee = end.GetExtrinsic();
+
+	for (int i = 0; i < intervals; ++i) {
+		const Extrinsic e = Interp(se, ee, static_cast<float>(i) / (intervals - 1));
+		_gradientQueue.push_back(Camera(e, start.GetIntrinsic()));
 	}
 }
 

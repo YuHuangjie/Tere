@@ -58,7 +58,8 @@ protected:
 	bool _rowReversed;
 	Major _major;
 	bool _majorLock;	// major shouldn't change through interaction
-	size_t _nearest;	// nearest reference camera
+
+	vector<size_t> _neighbors;
 };
 
 

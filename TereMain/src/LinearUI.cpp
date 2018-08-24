@@ -41,7 +41,7 @@ LinearUI::LinearUI(const vector<Camera> &camList,
 	_direction(NEGTIVE),
 	_rowReversed(false),
 	_major(ROTATE_ALONG_ROW),
-	_nearest(0)
+	_neighbors()
 {
 	if (_nCams == 0) {
 		throw runtime_error("LinearUI: empty list");
@@ -58,7 +58,7 @@ LinearUI::LinearUI(const vector<Camera> &camList,
 	// where in the layout is the initial pointer
 	_pRow = static_cast<float>(p / _cols);
 	_pCol = static_cast<float>(p % _cols);
-	_nearest = p;
+	_neighbors.push_back(_pRow * _cols + _pCol);
 
 	if (_cols >= 2) {
 		// reverse list if the sequence of cameras doesn't match the direction
@@ -91,30 +91,31 @@ Camera LinearUI::Leave(const double x, const double y, const Camera &view)
 	_activated = false;
 	_px = x;
 	_py = y;
+	size_t nearest = 0;
 
 	if (_major == ROTATE_ALONG_COLUMN && _direction == NEGTIVE) {
 		int left = static_cast<int>(std::floor(_pCol));
 		if (left == -1) { left = _cols - 1; }
-		_nearest = _pRow * _cols + left;
+		nearest = _pRow * _cols + left;
 		_pCol = left;
 	}
 	else if (_major == ROTATE_ALONG_COLUMN && _direction == POSITIVE) {
 		int right = static_cast<int>(std::ceil(_pCol));
-		_nearest = _pRow * _cols + right;
+		nearest = _pRow * _cols + right;
 		_pCol = right;
 	}
 	else if (_major == ROTATE_ALONG_ROW && _direction == NEGTIVE) {
 		int left = static_cast<int>(std::floor(_pRow));
-		_nearest = left * _cols + _pCol;
+		nearest = left * _cols + _pCol;
 		_pRow = left;
 	}
 	else {
 		int right = static_cast<int>(std::ceil(_pRow));
-		_nearest = right * _cols + _pCol;
+		nearest = right * _cols + _pCol;
 		_pRow = right;
 	}
 
-	return _camList[_nearest];
+	return _camList[nearest];
 }
 
 Camera LinearUI::Move(const double x, const double y, const Camera &view)
@@ -164,9 +165,16 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 		if (left == -1) { left = _cols - 1; }
 
 		// interpolate pose
-		Extrinsic interp = Interp(_camList[_pRow*_cols + left].GetExtrinsic(),
-			_camList[_pRow*_cols + right].GetExtrinsic(), t);
+		size_t neighbor1 = _pRow*_cols + left;
+		size_t neighbor2 = _pRow*_cols + right;
+		Extrinsic interp = Interp(_camList[neighbor1].GetExtrinsic(),
+			_camList[neighbor2].GetExtrinsic(), t);
 		Camera result(interp, view.GetIntrinsic());
+		
+		// interpolation hints
+		_neighbors.clear();
+		_neighbors.push_back(neighbor1);
+		_neighbors.push_back(neighbor2);
 
 		_px = _cx;
 		return result;
@@ -187,14 +195,17 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 		int right = static_cast<int>(std::ceil(_pRow));
 		float t = _pRow - left;
 
-		if (left == right) { 
-			return _camList[left * _cols + _pCol];
-		}
-
 		// interpolate pose
-		Extrinsic interp = Interp(_camList[left*_cols + _pCol].GetExtrinsic(),
-			_camList[right*_cols + _pCol].GetExtrinsic(), t);
+		size_t neighbor1 = left*_cols + _pCol;
+		size_t neighbor2 = right*_cols + _pCol;
+		Extrinsic interp = Interp(_camList[neighbor1].GetExtrinsic(),
+			_camList[neighbor2].GetExtrinsic(), t);
 		Camera result(interp, view.GetIntrinsic());
+
+		// interpolation hints
+		_neighbors.clear();
+		_neighbors.push_back(neighbor1);
+		_neighbors.push_back(neighbor2);
 
 		_py = _cy;
 		return result;
@@ -203,27 +214,7 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 
 vector<size_t> LinearUI::HintInterp() const
 {
-	vector<size_t> hint;
-
-	int left = static_cast<int>(std::floor(_pCol));
-	int right = static_cast<int>(std::ceil(_pCol));
-	if (left == -1) { left = _cols - 1; }
-	if (right == -1) { right = _cols - 1; }
-
-	int top = static_cast<int>(std::floor(_pRow));
-	int bottom = static_cast<int>(std::ceil(_pRow));
-
-	hint.push_back(top * _cols + left);
-	hint.push_back(top * _cols + right);
-	hint.push_back(bottom * _cols + left);
-	hint.push_back(bottom * _cols + right);
-	
-	// remove duplicates
-	std::sort(hint.begin(), hint.end());
-	auto last = std::unique(hint.begin(), hint.end());
-	hint.erase(last, hint.end());
-
-	return hint;
+	return _neighbors;
 }
 
 static float NormalizePoint(const float p, const float list)

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <queue>
 #include "LFLoader.h"
 #include "camera/Camera.hpp"
 #include "Renderer.h"
@@ -60,7 +61,9 @@ private:
 	Mode _mode;			// select rendering mode
 	size_t _fixRef;	// in FIX mode, select which ref camera to imitate
 
-					// Initialization rendering engine given profile
+	void _Draw(void);
+
+	// Initialization rendering engine given profile
 	void InitEngine(const string &profile);
 
 	// Background thread for FPS counting
@@ -68,7 +71,7 @@ private:
 
 	vector<int> viewport;   // viewport size
 
-							// Used for loading light field data(images, parameters...)
+	// Used for loading light field data(images, parameters...)
 	unique_ptr<LFLoader> gLFLoader;
 
 	// Used for rendering
@@ -86,6 +89,10 @@ private:
 	IndexStrgFunc _indexStrgFunc;
 	// strategy for weighing interpolation cameras
 	WeighttStrgFunc _weightStrgFunc;
+
+	bool _lockUp;	// refuse rendering and interaction requests
+	std::deque<Camera> _gradientQueue;	// store smoothing cameras
+	void EnqueueGradients(const Camera &start, const Camera &end);
 };
 
 #endif
