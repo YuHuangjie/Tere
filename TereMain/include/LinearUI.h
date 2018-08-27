@@ -48,6 +48,7 @@ protected:
 	const size_t _nCams;
 	size_t _rows;
 	size_t _cols;
+	bool _rowDegenerated;
 
 	bool _activated;
 	double _px, _py;

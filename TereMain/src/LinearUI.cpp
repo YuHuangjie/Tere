@@ -31,6 +31,7 @@ LinearUI::LinearUI(const vector<Camera> &camList,
 	_nCams(camList.size()),
 	_rows(0),
 	_cols(0),
+	_rowDegenerated(false),
 	_activated(false),
 	_px(0.0),
 	_py(0.0),
@@ -54,6 +55,9 @@ LinearUI::LinearUI(const vector<Camera> &camList,
 	}
 	_rows = rows;
 	_cols = res.quot;
+	_rowDegenerated = (_rows == 1);
+	_majorLock = true;
+	_major = ROTATE_ALONG_COLUMN;
 
 	// where in the layout is the initial pointer
 	_pRow = static_cast<float>(p / _cols);
@@ -128,7 +132,7 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 	}
 
 	// determine the major rotation axis
-	if (!_majorLock) {
+	if (!_rowDegenerated && !_majorLock) {
 		_major = ROTATE_ALONG_ROW;
 		if (std::abs(x - _px) > std::abs(y - _py)) {
 			_major = ROTATE_ALONG_COLUMN;
