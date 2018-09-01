@@ -138,6 +138,7 @@ int Renderer::render(const vector<int> &viewport)
 	/* Render scene to screen */
 	glUseProgram(scene_program_id);
 	glCullFace(GL_BACK);
+	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
     
