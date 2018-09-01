@@ -36,10 +36,10 @@ const char *renderer_fragment_coder =
 // calculate projected (u,v) of fragment
 "vec2 CalcTexCoordRoutine(int cam_id) \n"
 "{\n"
-"	vec4 ndc_coord = mat4(texture(ref_cam_VP, vec2(float(4 * cam_id) / float(4 * N_REF_CAMERAS - 1), 0.0)), \n"
-"		texture(ref_cam_VP, vec2(float(4 * cam_id + 1) / float(4 * N_REF_CAMERAS - 1), 0.0)),\n"
-"		texture(ref_cam_VP, vec2(float(4 * cam_id + 2) / float(4 * N_REF_CAMERAS - 1), 0.0)),\n"
-"		texture(ref_cam_VP, vec2(float(4 * cam_id + 3) / float(4 * N_REF_CAMERAS - 1), 0.0))) * vertex_location;\n"
+"	vec4 ndc_coord = mat4(texture(ref_cam_VP, vec2(float(8*cam_id + 1) / float(8*N_REF_CAMERAS), 0.0)), \n"
+"		texture(ref_cam_VP, vec2(float(8*cam_id + 3) / float(8*N_REF_CAMERAS), 0.0)),\n"
+"		texture(ref_cam_VP, vec2(float(8*cam_id + 5) / float(8*N_REF_CAMERAS), 0.0)),\n"
+"		texture(ref_cam_VP, vec2(float(8*cam_id + 7) / float(8*N_REF_CAMERAS), 0.0))) * vertex_location;\n"
 "	ndc_coord /= ndc_coord.w;\n"
 "	vec2 tex_coord = (ndc_coord.xy + vec2(1.0, 1.0)) / vec2(2.0, 2.0);\n"
 "	return tex_coord;\n"
@@ -50,22 +50,20 @@ const char *renderer_fragment_coder =
 "	return (pixelDepth > 0.f && abs(depthNoOccul - pixelDepth) <= EPS);\n"
 "}\n"
 
+
 /******************************************************
-* Do view-dependent texture blending. The number of reference cameras for 
+* Do view-dependent texture blending. The number of reference cameras for
 * blending is nInterps. Ref indices are stored in interpIndices. Blending
 * weights are stored in interpWeights.
 ******************************************************/
 "void main()\n"
 "{\n"
-"	float EPS = 1.5 / 255.0;\n"		// depth test threshold
-"	float total_weight = 0.0;\n"
-"   float weight = 0.0f;    \n"
-"   vec2 tex_coord = vec2(0.0);  \n"
-
-"	float alpha = 0.0f;	\n"
-"	float pixelAlpha = 0.f; \n"
-
-"	color = vec4(0.0);      \n"
+"	float	EPS				= 1.5 / 255.0;\n"		// depth test threshold
+"	float	total_weight	= 0.0;\n"
+"   float	weight			= 0.0f;    \n"
+"   vec2	tex_coord		= vec2(0.0);  \n"
+"	float	pixel_alpha		= 0.f; \n"
+"	color					= vec4(0.0);      \n"
 "	vec4[12] pixels;	\n"
 
 // fetch projected pixels
@@ -120,17 +118,14 @@ const char *renderer_fragment_coder =
 
 // Blend reference pixels
 "	for (int i = 0; i != nInterps; ++i) {\n"
+"		float _EPS = EPS * (1.f + float(i / 3));	\n"	// increment EPS gradually
 "       weight = interpWeights[i]; \n"
-"		if (!DepthTest(pixels[i].w, depthNoOccul[i], EPS)) { \n"
-"			weight = 0.f; \n"
-"		}\n"
+"		weight *= float(DepthTest(pixels[i].w, depthNoOccul[i], _EPS));	\n"	// false is 0
 "		total_weight += weight; \n"
-"		color += weight * pixels[i];  \n"
-"		if (i == 3) { EPS *= 2.f; }\n"
-"		if (i == 7) { EPS *= 4.f; }\n"
+"		color.rgb += weight * pixels[i].rgb;  \n"
 "	}\n"
 
-// normalize final color or assign vertex(missing) color is the sum of weights
+// normalize final color or assign vertex(missing) color if the sum of weights
 // are 0
 "	if (total_weight > 0.0f) {\n"
 "       color = color / total_weight;\n"
