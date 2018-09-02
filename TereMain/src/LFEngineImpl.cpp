@@ -11,6 +11,7 @@
 #include "Interpolation.h"
 #include "TextureFuser.h"
 #include "Poster.h"
+#include "image/ImageIO.hpp"
 
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -296,4 +297,35 @@ bool LFEngineImpl::GetScreenShot(unsigned char *buffer, int x, int y, int width,
 		return false;
 	}
 	return true;
+}
+
+bool LFEngineImpl::SetBackground(float r, float g, float b)
+{
+	if (!_textureFuser) {
+		return false;
+	}
+
+	float _r = std::max<float>(std::min<float>(r, 1.0f), 0.0f);
+	float _g = std::max<float>(std::min<float>(g, 1.0f), 0.0f);
+	float _b = std::max<float>(std::min<float>(b, 1.0f), 0.0f);
+
+	_textureFuser->SetBackground(_r, _g, _b);
+	
+	return true;
+}
+
+bool LFEngineImpl::SetBackground(const string &imagePath)
+{
+	if (!_textureFuser) {
+		return false;
+	}
+
+	try {
+		Image image = ImageIO::Read(imagePath);
+		return _textureFuser->SetBackground(image);
+	}
+	catch (std::exception &e) {
+		LOGE("SetBackground failed: %s\n", e.what());
+		return false;
+	}
 }

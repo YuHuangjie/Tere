@@ -11,7 +11,7 @@ class TextureFuser
 {
 public:
 	// Construct by giving background texture
-	//explicit TextureFuser(const size_t fbw, const size_t fbh, const Image& bg);
+	TextureFuser(const size_t fbw, const size_t fbh, const Image& bg);
 
 	// construct by given monochromatic background color
 	TextureFuser(const size_t fbw, const size_t fbh, 
@@ -26,17 +26,18 @@ public:
 
 	// set background color
 	bool SetBackground(float r, float g, float b);
-	//bool SetBackground(const Image &);
+	bool SetBackground(const Image &image);
 
 	// render method
 	int Render(const vector<int> &viewport) const;
 
 private:
 	bool IsConsistent() const;
+	void Init();
 
 	// background texture
 	bool _monochromatic;
-	//unsigned int _bgTexture;
+	unsigned int _bgTexture;
 	float _bgR, _bgG, _bgB;
 
 	// foreground texture
@@ -61,8 +62,9 @@ private:
 	int _bgRLocation;
 	int _bgGLocation;
 	int _bgBLocation;
+	int _monochromaticLocation;
 	int _fgTextureLocation;
-	//unsigned int _bgTextureLocation;
+	int _bgTextureLocation;
 };
 
 

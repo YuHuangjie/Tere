@@ -1,6 +1,7 @@
 #include "RenderUtils.h"
 #include "common/Shader.hpp"
 #include "common/Log.hpp"
+#include "image/Image.hpp"
 
 unsigned int LoadShaders(const char * vertex_code, const char * fragment_code)
 {
@@ -49,4 +50,36 @@ bool GenFrameBuffer(GLuint &fbo, GLuint &tex, GLuint &rbo,
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return true;
+}
+
+unsigned int GetTextureFromImage(const Image & image)
+{
+	unsigned int tex = 0;
+	unsigned int width = image.GetWidth();
+	unsigned int height = image.GetHeight();
+	unsigned char *data = image.GetData();
+
+	if (width == 0 || height == 0 || !data) {
+		return 0;
+	}
+
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height,
+		GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return tex;
+}
+
+void DestroyTexture(unsigned int &tex)
+{
+	if (tex <= 0) {
+		return;
+	}
+	glDeleteTextures(1, &tex);
+	tex = 0;
 }

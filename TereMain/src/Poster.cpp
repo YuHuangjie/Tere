@@ -58,6 +58,11 @@ Poster::~Poster()
 
 int Poster::Render(const vector<int>& viewport) const
 {
+	if (!IsConsistent()) {
+		LOGE("Poster: Abort rendering due to inconsistency\n");
+		return -1;
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(_program);
 	glDisable(GL_DEPTH_TEST);

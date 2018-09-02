@@ -70,6 +70,8 @@ int main(int argc, char **argv)
 		//myEngine->SetLocationOfReferenceCamera(12);
 		myEngine->Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		myEngine->StartFPSThread();
+		//myEngine->SetBackground("view.jpg");
+		myEngine->SetBackground(0.2f, 0.3f, 0.4f);
 		glfwRestoreWindow(gWindow);
 
 		// main play loop

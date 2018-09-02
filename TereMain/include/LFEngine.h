@@ -20,9 +20,6 @@ using std::unique_ptr;
 class LFEngine
 {
 public:
-	typedef vector<WeightedCamera>(*InterpStrgFunc)(const vector<Camera>&ref,
-		const Camera &vir, const glm::vec3 &p, const size_t maxn);
-
 	explicit LFEngine(const string &profile);
 	LFEngine(const LFEngine &) = delete;
 	LFEngine& operator=(const LFEngine&) = delete;
@@ -56,6 +53,12 @@ public:
 	// x and y specifies the lower left corner of this region, 
 	// width and height specifies the dimension of this region
 	bool GetScreenShot(unsigned char *buffer, int x, int y, int width, int height);
+
+	// set background color
+	bool SetBackground(float r, float g, float b);
+	// set background image
+	bool SetBackground(const string &imagePath);
+
 
 private:
 	unique_ptr<LFEngineImpl> _pImpl;

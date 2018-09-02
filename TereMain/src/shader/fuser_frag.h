@@ -18,14 +18,16 @@ const char *fuser_frag_code =
 "uniform float bgR;		\n"
 "uniform float bgG;		\n"
 "uniform float bgB;		\n"
+"uniform bool  monochromatic;   \n"
 
 // texture sampler
 "uniform sampler2D fgTexture;	\n"
+"uniform sampler2D bgTexture;   \n"
 
 "void main()			\n"
 "{						\n"
 "	vec4 _fgColor = texture(fgTexture, vTexCoord);	\n"
-"	vec4 _bgColor = vec4(bgR, bgG, bgB, 1.0f);	\n"
+"   vec4 _bgColor = ( monochromatic ? vec4(bgR, bgG, bgB, 1.0f) : texture(bgTexture, vTexCoord) );   \n"
 "	fColor = mix(_bgColor, _fgColor, _fgColor.a);	\n"
 "}						\n";
 

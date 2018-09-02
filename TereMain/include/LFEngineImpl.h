@@ -55,6 +55,11 @@ public:
 	// width and height specifies the dimension of this region
 	bool GetScreenShot(unsigned char *buffer, int x, int y, int width, int height);
 
+	// set background color
+	bool SetBackground(float r, float g, float b);
+	// set background image
+	bool SetBackground(const string &imagePath);
+
 private:
 	enum Mode
 	{

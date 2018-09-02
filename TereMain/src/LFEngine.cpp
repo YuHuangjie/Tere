@@ -51,3 +51,13 @@ int LFEngine::GetFPS() const
 {
 	return _pImpl->GetFPS();
 }
+
+bool LFEngine::SetBackground(float r, float g, float b)
+{
+	return _pImpl->SetBackground(r, g, b);
+}
+
+bool LFEngine::SetBackground(const string &imagePath)
+{
+	return _pImpl->SetBackground(imagePath);
+}
