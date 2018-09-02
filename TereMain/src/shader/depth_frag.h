@@ -4,6 +4,7 @@
 #include "common/Common.hpp"
 
 const char *depth_fragment_code =
+"//depf\n"
 #if PLATFORM_WIN || PLATFORM_OSX
 "#version 330 \n"
 #else
@@ -14,11 +15,12 @@ const char *depth_fragment_code =
 
 "out vec4 color;\n"
 "in vec3 vertex_position;\n"
+"in float vDepth;\n"
 
 "uniform mat4 VP;\n"
 "uniform float near;\n"
 "uniform float far;\n"
-"uniform sampler2D RGB;\n"
+"uniform sampler2D RGBA;\n"
 
 "float LinearizeDepth(float depth)\n"
 "{\n"
@@ -35,7 +37,10 @@ const char *depth_fragment_code =
 "	vec4 ndc = VP * vec4(vertex_position, 1.0);\n"
 "	ndc = ndc / ndc.w;\n"
 "	vec2 tex_coord = (ndc.xy + vec2(1.0, 1.0)) / vec2(2.0, 2.0);\n"
-"	color = vec4(texture(RGB, tex_coord).rgb, depth);\n"
+"	vec4 rgba = texture(RGBA, tex_coord).rgba;	\n"
+"	color = vec4(rgba.rgb, depth);\n"
+// encode alpha
+"	color.r = float((int(color.r * 255.0)&0xFC) | (int(rgba.a * 255.0)>>6)) / 255.0;\n"
 "}\n";
 
 #endif

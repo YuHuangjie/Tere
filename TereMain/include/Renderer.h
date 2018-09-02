@@ -32,13 +32,13 @@ using glm::ivec4;
 class Renderer
 {
 public:
-	Renderer(const LightFieldAttrib &, int fbWidth, int fbHeight);
+	Renderer(const LightFieldAttrib &, const size_t fbw, const size_t fbh);
 	Renderer(const Renderer &) = delete;
 	Renderer& operator=(const Renderer &) = delete;
 	~Renderer();
 
 	// render method
-	int render(const vector<int> &viewport);
+	int Render(const vector<int> &viewport);
     
     // Replace high resolution textures
     void ReplaceHighTexture();
@@ -64,9 +64,6 @@ private:
 	bool TransferMeshToGL(const string &meshFile);
 	bool TransferRefCameraToGL(const vector<mat4> &VP, const vector<mat4> V);
 
-	// compile vertex, fragment shaders
-	GLuint LoadShaders(const char * vertex_code, const char * fragment_code);
-
 	int nMeshes;                      // number of objects
 	vector<size_t> indexSizes;   // index count in each object
 	
@@ -91,17 +88,17 @@ private:
 	// attrib/uniform location
 	GLint scene_VP_id;
 	GLint depth_VP_id;
-	GLuint depth_near_location;
-	GLuint depth_far_location;
-	GLuint scene_near_location;
-	GLuint scene_far_location;
-	GLuint N_REF_CAMERAS_location;
-	GLuint ref_cam_VP_location;
-	GLuint ref_cam_V_location;
-	GLuint nInterpsLocation;
-	GLuint interpIndicesLocation[NUM_INTERP];
-	GLuint interpWeightsLocation[NUM_INTERP];
-	GLuint lightFieldLocation[NUM_INTERP];
+	int depth_near_location;
+	int depth_far_location;
+	int scene_near_location;
+	int scene_far_location;
+	int N_REF_CAMERAS_location;
+	int ref_cam_VP_location;
+	int ref_cam_V_location;
+	int nInterpsLocation;
+	int interpIndicesLocation[NUM_INTERP];
+	int interpWeightsLocation[NUM_INTERP];
+	int lightFieldLocation[NUM_INTERP];
 
 	mat4 Model;		// Model matrix
 	mat4 View;			// View matrix
@@ -109,9 +106,14 @@ private:
 
 	Camera virtual_camera;  // virtual_camera;
 
-	GLuint frameBuffer;		  // frame buffer for offline rendering
-	GLuint renderedTexture;   // texture buffer 
-	GLuint depthBuffer;	      // depth buffer
+	// frame buffer for depth appending to normal rgb texture
+	GLuint _rgbdFrameBuffer;
+	GLuint _rgbdDepthBuffer;
+
+	// frame buffer for rendering results
+	GLuint _finalFrameBuffer;
+	GLuint _finalRenderTex;
+	GLuint _finalDepthBuffer;
 
 	LightFieldAttrib attrib;  // light field attribute
 

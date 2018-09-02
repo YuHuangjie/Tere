@@ -16,20 +16,50 @@
 #include "shader/depth_frag.h"
 #include "shader/depth_vs.h"
 #include "RayTracer.h"
+#include "RenderUtils.h"
 
 using namespace glm;
 using namespace std;
 
 
-Renderer::Renderer(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
+Renderer::Renderer(const LightFieldAttrib &attrib, const size_t fbw, const size_t fbh)
 	: nMeshes(0),
 	indexSizes(),
 	vertexArrays(),
 	vertexBuffers(),
 	elementBuffers(),
 	vColorBuffers(),
+	ref_cam_VP_texture(0),
+	ref_cam_V_texture(0),
+	scene_program_id(0),
+	depth_program_id(0),
+	scene_VP_id(0),
+	depth_VP_id(0),
+	depth_near_location(0),
+	depth_far_location(0),
+	scene_near_location(0),
+	scene_far_location(0),
+	N_REF_CAMERAS_location(0),
+	ref_cam_VP_location(0),
+	ref_cam_V_location(0),
+	nInterpsLocation(0),
+	interpIndicesLocation(),
+	interpWeightsLocation(),
+	lightFieldLocation(),
+	Model(1.0f),
+	View(1.0f),
+	Projection(1.0f),
+	virtual_camera(),
+	_rgbdFrameBuffer(0),
+	_rgbdDepthBuffer(0),
+	_finalFrameBuffer(0),
+	_finalRenderTex(0),
+	_finalDepthBuffer(0),
 	attrib(attrib),
-	interpCameras()
+	interpCameras(),
+	lightFieldTexs(),
+	light_field_H(),
+	useHighTexture(false)
 {
 	// Compile shaders
 	depth_program_id = LoadShaders(depth_vertex_code, depth_fragment_code);
@@ -70,41 +100,13 @@ Renderer::Renderer(const LightFieldAttrib &attrib, int fbWidth, int fbHeight)
 	View = glm::mat4(1.0);
 	Projection = glm::mat4(1.0);
 
-	// Create frame buffer for offline rendering
-	glGenFramebuffers(1, &frameBuffer);
-	glGenTextures(1, &renderedTexture);
-	glGenRenderbuffers(1, &depthBuffer);
-
-	// bind frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	
-	// bind color texture
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fbWidth, fbHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	// attach it to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
-
-	// the depth buffer
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-#if GL_WIN || GL_OSX
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fbWidth, fbHeight);
-#elif GL_ES3_IOS || GL_ES3_ANDROID
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, fbWidth, fbHeight);
-#endif
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-	
-	// check if the framebuffer is actually complete
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw runtime_error("Framebuffer is not complete!\n");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	// reference textures
 	glGenTextures(NUM_HIGH_INTERP, light_field_H);
 
-	useHighTexture = false; 
+	// generate frame buffer for final rendering result
+	if (!GenFrameBuffer(_finalFrameBuffer, _finalRenderTex, _finalDepthBuffer, fbw, fbh)) {
+		throw runtime_error("Generate rendering frame buffer failed\n");
+	}
 }
 
 Renderer::~Renderer()
@@ -115,14 +117,16 @@ Renderer::~Renderer()
 	glDeleteVertexArrays(nMeshes, vertexArrays.data());
 	glDeleteProgram(scene_program_id);
 	glDeleteProgram(depth_program_id);
-	glDeleteFramebuffers(1, &frameBuffer);
-	glDeleteTextures(1, &renderedTexture);
-	glDeleteBuffers(1, &depthBuffer);
+	glDeleteFramebuffers(1, &_rgbdFrameBuffer);
+	glDeleteBuffers(1, &_rgbdDepthBuffer);
 	glDeleteTextures(NUM_HIGH_INTERP, light_field_H);
 	glDeleteTextures(lightFieldTexs.size(), lightFieldTexs.data());
+	glDeleteFramebuffers(1, &_finalFrameBuffer);
+	glDeleteTextures(1, &_finalRenderTex);
+	glDeleteRenderbuffers(1, &_finalDepthBuffer);
 }
 
-int Renderer::render(const vector<int> &viewport)
+int Renderer::Render(const vector<int> &viewport)
 {	
 	/*
 	 * When user interacts (by mouse or finger), render with low resolution
@@ -132,15 +136,20 @@ int Renderer::render(const vector<int> &viewport)
     
     if (viewport.size() != 4 || viewport[0] < 0 || viewport[1] < 0 ||
         viewport[2] <= 0 || viewport[3] <= 0) {
-        throw std::runtime_error("invalid viewport");
+		LOGE("invalid viewport");
+		return -1;
     }
+
+	// bind offline framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, _finalFrameBuffer);
 	
 	/* Render scene to screen */
 	glUseProgram(scene_program_id);
 	glCullFace(GL_BACK);
 	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
 	// restore view port
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
@@ -199,7 +208,10 @@ int Renderer::render(const vector<int> &viewport)
 	// release resources
 	glUseProgram(0);
 
-	return 0;
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return _finalRenderTex;
 }
 
 void Renderer::ReplaceHighTexture()
@@ -242,10 +254,19 @@ void Renderer::ReplaceHighTexture()
 GLuint Renderer::AppendDepth(GLuint rgb, unsigned int width, unsigned int height,
 	const mat4 &VP, const mat4 &V)
 {
+	if (_rgbdFrameBuffer == 0) {
+		GLuint tempTexture = 0;
+		if (!GenFrameBuffer(_rgbdFrameBuffer, tempTexture, _rgbdDepthBuffer, width, height)) {
+			return 0;
+		}
+		glDeleteTextures(1, &tempTexture);
+		tempTexture = 0;
+	}
+
 	// Generate new texture and attach to framebuffer
 	GLuint rgbd;
 	glGenTextures(1, &rgbd);
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _rgbdFrameBuffer);
 	
 	glBindTexture(GL_TEXTURE_2D, rgbd);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
@@ -282,6 +303,7 @@ GLuint Renderer::AppendDepth(GLuint rgb, unsigned int width, unsigned int height
 	glDrawElements(GL_TRIANGLES, (int)indexSizes[0], GL_UNSIGNED_INT, (void*)0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindVertexArray(0);
 
 	return rgbd;
 }
@@ -494,11 +516,4 @@ bool Renderer::AddInterpCameras(const WeightedCamera &camera)
 //
 //	return (ObjCenter);
 //}
-
-GLuint Renderer::LoadShaders(const char * vertex_code, const char * fragment_code)
-{
-	// Compile shaders
-	Shader shader(vertex_code, fragment_code);
-	return shader.ID;
-}
 

@@ -4,6 +4,7 @@
 #include "common/Common.hpp"
 
 const char *renderer_vertex_code =
+"//renv\n"
 #if PLATFORM_WIN || PLATFORM_OSX
 "#version 330 \n"
 #else

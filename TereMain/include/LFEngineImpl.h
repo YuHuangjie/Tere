@@ -10,6 +10,9 @@
 #include "UserInterface.h"
 #include "UIType.h"
 
+class TextureFuser;
+class Poster;
+
 class LFEngineImpl
 {
 public:
@@ -69,13 +72,20 @@ private:
 	// Background thread for FPS counting
 	void VRFPS(void);
 
-	vector<int> viewport;   // viewport size
+	vector<int> _screenViewport;   // screen rendering viewport size
+	vector<int> _offlineViewport;	// offline rendering viewport
 
 	// Used for loading light field data(images, parameters...)
 	unique_ptr<LFLoader> gLFLoader;
 
-	// Used for rendering
+	// TERE renderer
 	unique_ptr<Renderer> gRenderer;
+
+	// texture blender
+	unique_ptr<TextureFuser> _textureFuser;
+
+	// render to screen
+	unique_ptr<Poster> _poster;
 
 	// Rendering camera object
 	Camera gRenderCamera;

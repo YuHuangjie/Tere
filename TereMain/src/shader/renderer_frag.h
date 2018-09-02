@@ -4,6 +4,7 @@
 #include "common/Common.hpp"
 
 const char *renderer_fragment_coder =
+"//renf\n"
 #if PLATFORM_WIN || PLATFORM_OSX
 "#version 330 \n"
 #else
@@ -121,8 +122,11 @@ const char *renderer_fragment_coder =
 "		float _EPS = EPS * (1.f + float(i / 3));	\n"	// increment EPS gradually
 "       weight = interpWeights[i]; \n"
 "		weight *= float(DepthTest(pixels[i].w, depthNoOccul[i], _EPS));	\n"	// false is 0
+//   alpha consumes 2 least significant bits in red channel
+"		pixel_alpha = float(int(pixels[i].r * 255.0) & 0x03) / 3.f;	\n"
 "		total_weight += weight; \n"
 "		color.rgb += weight * pixels[i].rgb;  \n"
+"		color.a += weight * pixel_alpha;	\n"
 "	}\n"
 
 // normalize final color or assign vertex(missing) color if the sum of weights
@@ -131,13 +135,14 @@ const char *renderer_fragment_coder =
 "       color = color / total_weight;\n"
 "	}\n"
 "   else {\n"
-//"		color = missColor; \n"
-"		color.xyz = vColor; \n"
+"		color = missColor; \n"
+//"		color.xyz = vColor; \n"
 "	}\n"
 
 "	//color = vec4(0, 0, 0, 1);\n"
 "   //color.xy = tex_coord; \n"
-"	//color.x = abs(depthNoOccul[11] - pixel.w);\n"
+"	//color.x = pixels[0].w;	\n"
+"	//color.x = depthNoOccul[0];\n"
 "}\n";
 
 #endif

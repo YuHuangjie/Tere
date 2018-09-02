@@ -4,6 +4,7 @@
 #include "common/Common.hpp"
 
 const char *depth_vertex_code =
+"//depv\n"
 #if PLATFORM_WIN || PLATFORM_OSX
 "#version 330 \n"
 #else

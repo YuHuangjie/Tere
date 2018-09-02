@@ -9,6 +9,8 @@
 #include "WeightedCamera.h"
 #include "Strategy.h"
 #include "Interpolation.h"
+#include "TextureFuser.h"
+#include "Poster.h"
 
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -18,6 +20,8 @@ LFEngineImpl::LFEngineImpl(const string &profile)
 	_fixRef(0),
 	gLFLoader(nullptr),
 	gRenderer(nullptr),
+	_textureFuser(nullptr),
+	_poster(nullptr),
 	gRenderCamera(),
 	fps(0),
 	frames(0),
@@ -53,6 +57,22 @@ void LFEngineImpl::InitEngine(const string &profile)
 		// Initialize obj renderer
 		LOGI("ENGINE: preparing Renderer\n");
 		gRenderer.reset(new Renderer(attrib, attrib.width_H, attrib.height_H));
+
+		// initialize texture fuser
+		LOGI("ENGINE: preparing TextureFuser\n");
+		_textureFuser.reset(new TextureFuser(attrib.width_H, attrib.height_H,
+			0.f, 0.f, 0.f));
+
+		// initialize poster for screen rendering
+		LOGI("ENGINE: preparing Poster\n");
+		_poster.reset(new Poster());
+
+		// initialize offline viewport size
+		_offlineViewport.clear();
+		_offlineViewport.push_back(0);
+		_offlineViewport.push_back(0);
+		_offlineViewport.push_back(attrib.width_L);
+		_offlineViewport.push_back(attrib.height_L);
 
 		// Read light field textures
 		LOGI("ENGINE: decompressing images\n");
@@ -151,7 +171,16 @@ void LFEngineImpl::_Draw(void)
 	}
 
 	// call underlying renderer
-	gRenderer->render(viewport);
+	unsigned int renderTex = gRenderer->Render(_offlineViewport);
+	
+	// fuse with background 
+	_textureFuser->SetBackground(0.2f, 0.3f, 0.4f);
+	_textureFuser->SetForeground(renderTex);
+	unsigned int fusedTex = _textureFuser->Render(_offlineViewport);
+
+	// render to screen
+	_poster->SetTexture(fusedTex);
+	_poster->Render(_screenViewport);
 	++frames;
 }
 
@@ -179,11 +208,11 @@ void LFEngineImpl::Resize(uint32_t width, uint32_t height)
 	float aspect = glm::max(static_cast<float>(attrib.width_H) / width,
 		static_cast<float>(attrib.height_H) / height);
 
-	viewport.clear();
-	viewport.push_back(width / 2 - attrib.width_H / aspect / 2);
-	viewport.push_back(height / 2 - attrib.height_H / aspect / 2);
-	viewport.push_back(attrib.width_H / aspect);
-	viewport.push_back(attrib.height_H / aspect);
+	_screenViewport.clear();
+	_screenViewport.push_back(width / 2 - attrib.width_H / aspect / 2);
+	_screenViewport.push_back(height / 2 - attrib.height_H / aspect / 2);
+	_screenViewport.push_back(attrib.width_H / aspect);
+	_screenViewport.push_back(attrib.height_H / aspect);
 
 	ui->SetResolution(width, height);
 }
