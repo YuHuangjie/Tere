@@ -108,7 +108,7 @@ int TextureFuser::Render(const vector<int> &viewport) const
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 	glUseProgram(_program);
-	glDisable(GL_MULTISAMPLE);
+	EnableMultiSample(false);
 	glDisable(GL_DEPTH_TEST);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 

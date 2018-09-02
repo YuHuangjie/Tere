@@ -1,6 +1,8 @@
 #ifndef RENDERUTILS_H
 #define RENDERUTILS_H
 
+#include <cstddef>
+
 class Image;
 
 // compile vertex, fragment shaders
@@ -13,5 +15,8 @@ bool GenFrameBuffer(unsigned int &fbo, unsigned int &tex, unsigned int &rbo,
 
 unsigned int GetTextureFromImage(const Image &image);
 void DestroyTexture(unsigned int &tex);
+
+// disable multisampling function
+void EnableMultiSample(bool flag);
 
 #endif

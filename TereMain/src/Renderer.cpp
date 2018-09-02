@@ -146,7 +146,7 @@ int Renderer::Render(const vector<int> &viewport)
 	/* Render scene to screen */
 	glUseProgram(scene_program_id);
 	glCullFace(GL_BACK);
-	glDisable(GL_MULTISAMPLE);
+	EnableMultiSample(false);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.f, 0.f, 0.f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

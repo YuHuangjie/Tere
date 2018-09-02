@@ -83,3 +83,16 @@ void DestroyTexture(unsigned int &tex)
 	glDeleteTextures(1, &tex);
 	tex = 0;
 }
+
+void EnableMultiSample(bool flag)
+{
+#if GL_WIN || GL_OSX
+	if (flag) { glEnable(GL_MULTISAMPLE); }
+	else      { glDisable(GL_MULTISAMPLE); }
+#elif GL_ES3_ANDROID
+	if (flag) { glEnable(GL_MULTISAMPLE_EXT); }
+	else      { glDisable(GL_MULTISAMPLE_EXT); }
+#else
+#error("GL_MULTISAMPLE not found");
+#endif
+}
