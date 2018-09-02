@@ -47,9 +47,10 @@ public:
 			if (VertexShaderErrorMessage.size() != 0)
 				// When you see errors originated from here, first make sure opengl
 				// is properly initialized
-				throw runtime_error(string("VERTEX ERROR: ") + string(VertexShaderErrorMessage.data()));
+				throw runtime_error(string("VERTEX ERROR: ") + string(VertexShaderErrorMessage.data())
+									+ string(&vertex_code[0], 7));
 			else
-				throw runtime_error(string("VERTEX ERROR: Empty"));
+				throw runtime_error(string("VERTEX ERROR: Empty") + string(&vertex_code[0], 7));
 		}
 
 		// Compile Fragment Shader
@@ -65,9 +66,10 @@ public:
 			std::vector<char> FragmentShaderErrorMessage(InfoLogLength);
 			glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
 			if (FragmentShaderErrorMessage.size() != 0)
-				throw runtime_error(string("FRAGMENT ERROR: ") + string(FragmentShaderErrorMessage.data()));
+				throw runtime_error(string("FRAGMENT ERROR: ") + string(FragmentShaderErrorMessage.data())
+									+ string(&frag_code[0], 7));
 			else
-				throw runtime_error(string("FRAGMENT ERROR: Empty"));
+				throw runtime_error(string("FRAGMENT ERROR: Empty") + string(&frag_code[0], 7));
 		}
 
 		// Link the program
