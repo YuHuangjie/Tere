@@ -56,6 +56,8 @@ const char *renderer_fragment_coder =
 * Do view-dependent texture blending. The number of reference cameras for
 * blending is nInterps. Ref indices are stored in interpIndices. Blending
 * weights are stored in interpWeights.
+* The blending function is given as:
+*   C = \frac{\sum_{i} W_i*(R_i, G_i, B_i, 1)*A_i}{\sum_{i} W_i}
 ******************************************************/
 "void main()\n"
 "{\n"
@@ -125,7 +127,7 @@ const char *renderer_fragment_coder =
 //   alpha consumes 2 least significant bits in red channel
 "		pixel_alpha = float(int(pixels[i].r * 255.0) & 0x03) / 3.f;	\n"
 "		total_weight += weight; \n"
-"		color.rgb += weight * pixels[i].rgb;  \n"
+"		color.rgb += weight * pixels[i].rgb * pixel_alpha;  \n"
 "		color.a += weight * pixel_alpha;	\n"
 "	}\n"
 
@@ -135,8 +137,13 @@ const char *renderer_fragment_coder =
 "       color = color / total_weight;\n"
 "	}\n"
 "   else {\n"
-"		color = missColor; \n"
-//"		color.xyz = vColor; \n"
+// 3 strategies to handle miss rendered fragment
+//      1. assign a hardcoded missing color (for debugging mainly)
+//      2. assign vertex color
+//      3. considered transparent (use background color)
+// "		color = missColor; \n"
+// "		color.xyz = vColor; \n"
+"		discard; \n"
 "	}\n"
 
 "	//color = vec4(0, 0, 0, 1);\n"
