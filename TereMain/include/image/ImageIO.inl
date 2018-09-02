@@ -3,13 +3,11 @@
 #include "ImageCodec.h"
 
 /**
- * Decode image file into RGB format
+ * Decode image file into RGBA format
  *
  * @param filename	The file name
- * @param w	Desired output image width. If w is set to 0, the width (in Pixels) of 
- *			the JPEG to be decompressed is used
- * @param h	Desired output image height. If h is set to 0, the height (in Pixels) of 
- *			the JPEG to be decompressed is used
+ * @param w	Desired output image width. If w is set to 0, original size is used
+ * @param h	Desired output image height. If h is set to 0, original size is used
  *
  * @return Decoded image
  */
