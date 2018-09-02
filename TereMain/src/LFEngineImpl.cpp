@@ -174,7 +174,6 @@ void LFEngineImpl::_Draw(void)
 	unsigned int renderTex = gRenderer->Render(_offlineViewport);
 	
 	// fuse with background 
-	_textureFuser->SetBackground(0.2f, 0.3f, 0.4f);
 	_textureFuser->SetForeground(renderTex);
 	unsigned int fusedTex = _textureFuser->Render(_offlineViewport);
 
