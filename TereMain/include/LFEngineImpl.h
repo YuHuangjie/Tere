@@ -107,7 +107,11 @@ private:
 
 	bool _lockUp;	// refuse rendering and interaction requests
 	std::deque<Camera> _gradientQueue;	// store smoothing cameras
+	float _gradientsPerNorm;			
+	void ComputeGradientsPerNorm();
 	void EnqueueGradients(const Camera &start, const Camera &end);
 };
+
+float AverageNorm(const vector<Camera>&);
 
 #endif

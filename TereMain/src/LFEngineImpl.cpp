@@ -1,6 +1,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <algorithm>
+#include <numeric>
 
 #include "LFEngineImpl.h"
 #include "common/Log.hpp"
@@ -115,6 +116,9 @@ void LFEngineImpl::InitEngine(const string &profile)
 			ui = new ArcballUI(up, center, attrib.ref_cameras, gRenderCamera, 
 				attrib.camera_mesh_name);
 		}
+
+		// compute intervals per distance
+		ComputeGradientsPerNorm();
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());
@@ -129,9 +133,7 @@ void LFEngineImpl::Draw(void)
 	if (_lockUp) {
 		gRenderCamera = _gradientQueue.front();
 		_gradientQueue.pop_front();
-		if (_gradientQueue.empty()) {
-			_lockUp = false;
-		}
+		_lockUp = !_gradientQueue.empty();
 	}
 
 	_Draw();
@@ -233,9 +235,9 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 		_mode = INTERP;
 		break;
 	case LEAVE: {
-		Camera toEnd = ui->Leave(sx, sy, gRenderCamera);
-		EnqueueGradients(gRenderCamera, toEnd);
-		_lockUp = true;
+		Camera dst = ui->Leave(sx, sy, gRenderCamera);
+		EnqueueGradients(gRenderCamera, dst);
+		_lockUp = !_gradientQueue.empty();
 		//gRenderer->SetVirtualCamera(gRenderCamera);
 		//gRenderer->ReplaceHighTexture();
 		//gRenderer->UseHighTexture(true);
@@ -249,16 +251,28 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 
 void LFEngineImpl::EnqueueGradients(const Camera &start, const Camera &end)
 {
-	const size_t intervals = 15;
 	_gradientQueue.clear();
+
+	const glm::vec3 &diff = start.GetPosition() - end.GetPosition();
+	const size_t intervals = static_cast<size_t>(std::ceil(
+		glm::dot(diff, diff) * _gradientsPerNorm));
+
+	if (intervals <= 0) { return; }
 
 	const Extrinsic &se = start.GetExtrinsic();
 	const Extrinsic &ee = end.GetExtrinsic();
 
-	for (int i = 0; i < intervals; ++i) {
-		const Extrinsic e = Interp(se, ee, static_cast<float>(i) / (intervals - 1));
+	for (int i = 1; i <= intervals; ++i) {
+		const Extrinsic e = Interp(se, ee, static_cast<float>(i) / intervals);
 		_gradientQueue.push_back(Camera(e, start.GetIntrinsic()));
 	}
+}
+
+void LFEngineImpl::ComputeGradientsPerNorm()
+{
+	const float HARD_CODED_INTERVAL = 15.f;
+	_gradientsPerNorm = HARD_CODED_INTERVAL / 
+		AverageNorm(gLFLoader->GetLightFieldAttrib().ref_cameras);
 }
 
 void LFEngineImpl::SetLocationOfReferenceCamera(int id)
@@ -328,4 +342,39 @@ bool LFEngineImpl::SetBackground(const string &imagePath)
 		LOGE("SetBackground failed: %s\n", e.what());
 		return false;
 	}
+}
+
+float AverageNorm(const vector<Camera> &cameras)
+{
+	const size_t N = cameras.size();
+	if (N == 0) { return 0.f; }
+
+	vector<glm::vec3> positions(N);
+
+	// copy positions to stack
+	for (size_t i = 0; i < N; ++i) {
+		positions[i] = cameras[i].GetPosition();
+	}
+
+	vector<float> nnDist(N);
+
+	// calculate nearest neighbor for every cameras
+	for (size_t i = 0; i < N; ++i) {
+		const glm::vec3 &myPos = positions[i];
+		float minDist = std::numeric_limits<float>::max();
+
+		for (size_t j = 0; j < N; ++j) {
+			if (j == i) continue;
+			const glm::vec3 &pos = positions[j];
+			const glm::vec3 &diff = myPos - pos;
+			float dist = glm::dot(diff, diff);
+			if (dist < minDist) { minDist = dist; }
+		}
+
+		nnDist[i] = minDist;
+	}
+
+	// compute average distance
+	float average = std::accumulate(nnDist.cbegin(), nnDist.cend(), 0.f) / N;
+	return average;
 }
