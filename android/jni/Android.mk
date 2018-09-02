@@ -54,6 +54,10 @@ LOCAL_SRC_FILES := ../../TereMain/src/ArcballUI.cpp \
 ../../TereMain/src/UserInterface.cpp \
 ../../TereMain/src/PlyUtility.cpp \
 ../../TereMain/src/tinyply.cpp \
+../../TereMain/src/Poster.cpp \
+../../TereMain/src/RenderUtils.cpp \
+../../TereMain/src/TextureFuser.cpp \
+
 
 LOCAL_STATIC_LIBRARIES := jpeg webp cpufeatures
 
