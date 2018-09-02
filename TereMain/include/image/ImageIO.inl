@@ -28,7 +28,7 @@ inline Image ImageIO::Read(const std::string &filename, const unsigned int w, co
 		height = h;
 	}
 
-	const uint32_t bufsize = width * height * 3;
+	const uint32_t bufsize = width * height * 4;
 	uint8_t *buf = new uint8_t[bufsize];
 
 	bool status = DecodeImage(filename, buf, bufsize, width, height);

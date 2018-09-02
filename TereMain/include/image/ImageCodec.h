@@ -19,8 +19,7 @@ inline bool DecodeImageHeader(const std::string &filename, unsigned int &width, 
 		return DecodeJpegHeader(filename, width, height);
 	}
 	else if (ext4 == "webp" || ext4 == "WEBP") {
-		//return DecodeWebpHeader(filename, width, height);
-		return false;
+		return DecodeWebpHeader(filename, width, height);
 	}
 	else {
 		string errormsg = string("!![Error] DecodeImage: Unsupported image extension: ") + ext4;

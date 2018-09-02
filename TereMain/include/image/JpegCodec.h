@@ -32,7 +32,7 @@ inline bool DecodeJpeg(const string &filename, unsigned char *buf, const unsigne
     if (buf == nullptr) {
         return false;
     }
-	if (bufsize < width * height * 3) {
+	if (bufsize < width * height * 4) {
 		string errormsg = string("!![Error] DecodeJpeg: too small buf size: ") + TO_STRING(bufsize);
 		throw invalid_argument(errormsg);
 	}
@@ -55,7 +55,7 @@ inline bool DecodeJpeg(const string &filename, unsigned char *buf, const unsigne
 
     tjhandle decompressor = tjInitDecompress();
     int result = tjDecompress2(decompressor, jpeg_buf, jpeg_size,
-                               buf, width, 0, height, TJPF_RGB, TJFLAG_BOTTOMUP);
+                               buf, width, 0, height, TJPF_RGBA, TJFLAG_BOTTOMUP);
     tjDestroy(decompressor);
     delete[] jpeg_buf;
 

@@ -221,8 +221,8 @@ bool LFLoader::OnDecompressing(const int thread_id, const int thread_nr)
 			return false;
 		}
 
-		std::memcpy(rgbBuffer.data() + i*texture_width*texture_height * 3,
-			image.GetData(), texture_height * texture_width * 3);
+		std::memcpy(rgbBuffer.data() + i*texture_width*texture_height * 4,
+			image.GetData(), texture_height * texture_width * 4);
 	}
 
 	return true;
@@ -236,7 +236,7 @@ bool LFLoader::Decompress(const int no_thread)
 	std::vector< std::future<bool> > tasks(no_thread);
 
 	// some versions of libjpeg-turbo has a bug, hence the odd +1 here
-	rgbBuffer = vector<uint8_t>(texture_width*texture_height * 3 *
+	rgbBuffer = vector<uint8_t>(texture_width*texture_height * 4 *
 		attrib.N_REF_CAMERAS + 1, 0);
 
 	for (int i = 0; i != no_thread; ++i) {
@@ -262,20 +262,20 @@ vector<GLuint> LFLoader::GenerateRGBDTextures(const unique_ptr<Renderer> &render
 	glGenTextures(image_num, light_field_tex.data());
 
 	for (int i = 0; i != image_num; ++i) {
-		// upload RGB image
-		GLuint rgb = 0;
-		glGenTextures(1, &rgb);
-		glBindTexture(GL_TEXTURE_2D, rgb);
+		// upload RGBA image
+		GLuint rgba = 0;
+		glGenTextures(1, &rgba);
+		glBindTexture(GL_TEXTURE_2D, rgba);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, texture_width, texture_height);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, texture_width, texture_height);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width, texture_height,
-			GL_RGB, GL_UNSIGNED_BYTE,
-			rgbBuffer.data() + i*texture_width*texture_height * 3);
+			GL_RGBA, GL_UNSIGNED_BYTE,
+			rgbBuffer.data() + i*texture_width*texture_height * 4);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// append depth channel to RGB texture
-		GLuint rgbd = renderer->AppendDepth(rgb,
+		GLuint rgbd = renderer->AppendDepth(rgba,
 			texture_width, texture_height,
 			attrib.ref_cameras_VP[i], 
 			attrib.ref_cameras_V[i]);
@@ -283,7 +283,7 @@ vector<GLuint> LFLoader::GenerateRGBDTextures(const unique_ptr<Renderer> &render
 		light_field_tex[i] = rgbd;
 
 		// delete rgb texture
-		glDeleteTextures(1, &rgb);
+		glDeleteTextures(1, &rgba);
 
 		// glTexSubImage2D allocate CPU memory and copy the user's data into it.
 		// That increase much memory misallocating. An approch is to synchronize

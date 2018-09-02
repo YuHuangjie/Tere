@@ -9,7 +9,7 @@ inline Image::Image()
 inline Image::Image(unsigned char *data, int size, unsigned int width, unsigned int height)
 	: mWidth(width), mHeight(height)
 {
-	if (size != width * height * 3) {
+	if (size != width * height * 4) {
 		throw std::invalid_argument(std::string("!![Error] VideoSplitter: Invalid size ") +
 			TO_STRING(size));
 	}
