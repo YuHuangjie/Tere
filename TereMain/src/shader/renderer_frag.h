@@ -32,7 +32,7 @@ const char *renderer_fragment_coder =
 
 "out highp vec4 color;\n"
 
-"vec4 missColor = vec4(255, 87, 155, 1) / 255.0;\n"
+"vec4 missColor = vec4(255, 87, 155, 255) / 255.0;\n"
 
 // calculate projected (u,v) of fragment
 "vec2 CalcTexCoordRoutine(int cam_id) \n"
