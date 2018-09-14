@@ -222,7 +222,7 @@ bool TextureFuser::IsConsistent() const
 	if (_elementBuffer <= 0) {
 		return false;
 	}
-	if (_fgTextureLocation <= 0) {
+	if (_fgTextureLocation < 0) {
 		return false;
 	}
 
