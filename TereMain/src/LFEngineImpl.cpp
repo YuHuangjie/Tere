@@ -58,11 +58,11 @@ void LFEngineImpl::InitEngine(const string &profile)
 
 		// Initialize obj renderer
 		LOGI("ENGINE: preparing Renderer\n");
-		gRenderer.reset(new Renderer(attrib, attrib.width_H, attrib.height_H));
+		gRenderer.reset(new Renderer(attrib, attrib.width_L, attrib.height_L));
 
 		// initialize texture fuser
 		LOGI("ENGINE: preparing TextureFuser\n");
-		_textureFuser.reset(new TextureFuser(attrib.width_H, attrib.height_H,
+		_textureFuser.reset(new TextureFuser(attrib.width_L, attrib.height_L,
 			0.f, 0.f, 0.f));
 
 		// initialize poster for screen rendering
