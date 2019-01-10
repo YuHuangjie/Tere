@@ -11,6 +11,8 @@ const char *fuser_frag_code =
 "#version 300 es\n"
 #endif
 
+"precision mediump float;  \n"
+
 "out vec4 fColor;	\n"
 
 "in vec2 vTexCoord;		\n"
