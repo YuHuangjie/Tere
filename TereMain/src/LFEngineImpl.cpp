@@ -377,3 +377,8 @@ float AverageNorm(const vector<Camera> &cameras)
 	float average = std::accumulate(nnDist.cbegin(), nnDist.cend(), 0.f) / N;
 	return average;
 }
+
+void LFEngineImpl::SetScreenFBO(unsigned int fbo)
+{
+    if (_poster) { _poster->SetScreenFBO(fbo); }
+}

@@ -24,7 +24,8 @@ Poster::Poster()
 	_program(0),
 	_vertexArray(0),
 	_vertexBuffer(0),
-	_elementBuffer(0)
+	_elementBuffer(0),
+    _fbo(0)
 {
 	Init();
 
@@ -38,7 +39,8 @@ Poster::Poster(unsigned int texture)
 	_program(0),
 	_vertexArray(0),
 	_vertexBuffer(0),
-	_elementBuffer(0)
+	_elementBuffer(0),
+    _fbo(0)
 {
 	Init();
 
@@ -155,4 +157,9 @@ void Poster::Init()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
 		(void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+}
+
+void Poster::SetScreenFBO(unsigned int fbo)
+{
+    _fbo = fbo;
 }

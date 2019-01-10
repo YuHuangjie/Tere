@@ -59,7 +59,10 @@ public:
 	bool SetBackground(float r, float g, float b);
 	// set background image
 	bool SetBackground(const string &imagePath);
-
+    
+    // set screen framebuffer
+    void SetScreenFBO(unsigned int fbo);
+	
 private:
 	enum Mode
 	{

@@ -61,3 +61,8 @@ bool LFEngine::SetBackground(const string &imagePath)
 {
 	return _pImpl->SetBackground(imagePath);
 }
+
+void LFEngine::SetScreenFBO(unsigned int fbo)
+{
+    _pImpl->SetScreenFBO(fbo);
+}

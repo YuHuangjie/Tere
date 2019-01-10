@@ -19,7 +19,10 @@ public:
 
 	// render method
 	int Render(const vector<int> &viewport) const;
-
+    
+    // set screen framebuffer
+    void SetScreenFBO(unsigned int fbo);
+	
 private:
 	bool IsConsistent() const;
 	void Init();
@@ -37,6 +40,9 @@ private:
 
 	// texture location
 	int _imageLocation;
+	    
+    // where to render
+    unsigned int _fbo;
 };
 
 #endif
