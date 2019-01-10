@@ -122,7 +122,6 @@ void LFEngineImpl::InitEngine(const string &profile)
 	}
 	catch (runtime_error &e) {
 		LOGW("runtime error occured: %s\n", e.what());
-		std::abort();
 	}
 
 	LOGI("\n===============  ENGINE INITIALIZATION OK!  ================\n");
