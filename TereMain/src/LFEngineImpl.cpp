@@ -24,7 +24,7 @@ LFEngineImpl::LFEngineImpl(const string &profile)
 	gRenderer(nullptr),
 	_textureFuser(nullptr),
 	_poster(nullptr),
-	gRenderCamera(),
+	_renderCam(),
 	fps(0),
 	frames(0),
 	ui(nullptr),
@@ -91,12 +91,14 @@ void LFEngineImpl::InitEngine(const string &profile)
 		// Set rendering camera
 		LOGI("ENGINE: setting rendering camera\n");
 		
-		gRenderCamera.SetIntrinsic(attrib.ref_cameras[0].GetIntrinsic());
+		_renderCam.SetIntrinsic(attrib.ref_cameras[0].GetIntrinsic());
+        _stdFx = _renderCam.GetFx();
+        _stdFy = _renderCam.GetFy();
 
 		// Set up user interface
 		if (attrib._uiMode == "linear") {
 			// Linear UI
-			gRenderCamera.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
+			_renderCam.SetExtrinsic(attrib.ref_cameras[0].GetExtrinsic());
 			ui = new LinearUI(attrib.ref_cameras, attrib._rows, 0);
 		}
 		else if (attrib._uiMode == "arcball") {
@@ -112,8 +114,8 @@ void LFEngineImpl::InitEngine(const string &profile)
 			glm::vec3 right = glm::cross(lookat, _up);
 			glm::vec3 up = glm::cross(right, lookat);
 
-			gRenderCamera.SetExtrinsic(Extrinsic(location, center, up));
-			ui = new ArcballUI(up, center, attrib.ref_cameras, gRenderCamera, 
+			_renderCam.SetExtrinsic(Extrinsic(location, center, up));
+			ui = new ArcballUI(up, center, attrib.ref_cameras, _renderCam, 
 				attrib.camera_mesh_name);
 		}
 
@@ -130,7 +132,7 @@ void LFEngineImpl::InitEngine(const string &profile)
 void LFEngineImpl::Draw(void)
 {
 	if (_lockUp) {
-		gRenderCamera = _gradientQueue.front();
+		_renderCam = _gradientQueue.front();
 		_gradientQueue.pop_front();
 		_lockUp = !_gradientQueue.empty();
 	}
@@ -142,14 +144,14 @@ void LFEngineImpl::_Draw(void)
 {
 	switch (_mode) {
 	case INTERP: {
-		gRenderer->SetVirtualCamera(gRenderCamera);
+		gRenderer->SetVirtualCamera(_renderCam);
 
 		// select which cameas and weights to interpolate
 		size_t nInterp = 3;
 		const LightFieldAttrib &attrib = gLFLoader->GetLightFieldAttrib();
 		vector<size_t> indices = ui->HintInterp();
 		vector<float> weights = _weightStrgFunc(attrib.ref_cameras,
-			gRenderCamera, attrib.ref_camera_center, indices);
+			_renderCam, attrib.ref_camera_center, indices);
 		nInterp = std::min(indices.size(), weights.size());
 
 		gRenderer->ClearInterpCameras();
@@ -226,7 +228,7 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 
 	switch (type) {
 	case MOVE:
-		gRenderCamera = ui->Move(sx, sy, gRenderCamera);
+		_renderCam = ui->Move(sx, sy, _renderCam);
 		break;
 	case TOUCH:
 		ui->Touch(sx, sy);
@@ -234,8 +236,8 @@ void LFEngineImpl::SetUI(UIType type, double sx, double sy)
 		_mode = INTERP;
 		break;
 	case LEAVE: {
-		Camera dst = ui->Leave(sx, sy, gRenderCamera);
-		EnqueueGradients(gRenderCamera, dst);
+		Camera dst = ui->Leave(sx, sy, _renderCam);
+		EnqueueGradients(_renderCam, dst);
 		_lockUp = !_gradientQueue.empty();
 		//gRenderer->SetVirtualCamera(gRenderCamera);
 		//gRenderer->ReplaceHighTexture();
@@ -280,16 +282,23 @@ void LFEngineImpl::SetLocationOfReferenceCamera(int id)
 	_mode = FIX;
 }
 
-void LFEngineImpl::SetZoomScale(float zoom_scale)
+float LFEngineImpl::SetZoomScale(float zoom_scale)
 {
-	if (zoom_scale <= 0.0f) {
-		return;
-	}
+    if (zoom_scale <= 0.1f) {
+        zoom_scale = 0.1f;
+    }
+    else if (zoom_scale >= 10.f) {
+        zoom_scale = 10.f;
+    }
 
-	glm::vec3 new_position = gRenderCamera.GetPosition() - (zoom_scale - 1.0f) * gRenderCamera.GetDir();
-	gRenderCamera.SetExtrinsic(Extrinsic(new_position,
-		gRenderCamera.GetPosition() - gRenderCamera.GetDir(),
-		gRenderCamera.GetUp()));
+    _renderCam.SetIntrinsic(Intrinsic(
+        _renderCam.GetCx(),
+        _renderCam.GetCy(), 
+        _stdFx * zoom_scale,
+        _stdFy * zoom_scale)
+    );
+
+    return zoom_scale;
 }
 
 bool LFEngineImpl::GetScreenShot(unsigned char *buffer, int x, int y, int width, int height)

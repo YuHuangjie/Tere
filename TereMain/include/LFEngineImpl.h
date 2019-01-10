@@ -45,7 +45,7 @@ public:
 	// Zoom in(out). This function simply move rendering camera 
 	// along lookat direction. If zoom_scale<1, move along negative
 	// lookat direction, otherwise, positive 
-	void SetZoomScale(float zoom_scale);
+	float SetZoomScale(float zoom_scale);
 
 	// Get FPS (frames drawn in previous second)
 	inline int GetFPS(void) { return fps; }
@@ -96,7 +96,9 @@ private:
 	unique_ptr<Poster> _poster;
 
 	// Rendering camera object
-	Camera gRenderCamera;
+	Camera _renderCam;
+    // focal length on initialization, used for zooming function
+    float _stdFx, _stdFy;
 
 	int fps;    // frames per second
 	int frames; // frames drawn

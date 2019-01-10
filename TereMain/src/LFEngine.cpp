@@ -37,9 +37,9 @@ void LFEngine::SetLocationOfReferenceCamera(int id)
 	_pImpl->SetLocationOfReferenceCamera(id);
 }
 
-void LFEngine::SetZoomScale(float zoom_scale)
+float LFEngine::SetZoomScale(float zoom_scale)
 {
-	_pImpl->SetZoomScale(zoom_scale);
+	return _pImpl->SetZoomScale(zoom_scale);
 }
 
 bool LFEngine::GetScreenShot(unsigned char *buffer, int x, int y, int width, int height)

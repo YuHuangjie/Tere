@@ -41,10 +41,10 @@ public:
 	// specified by 'id'
 	void SetLocationOfReferenceCamera(int id);
 
-	// Zoom in(out). This function simply move rendering camera 
-	// along lookat direction. If zoom_scale<1, move along negative
-	// lookat direction, otherwise, positive 
-	void SetZoomScale(float zoom_scale);
+	// Zoom in(out). This function changes the FoV of rendering camera.
+	// zoom_scale is restricted to be between [0.1, 10]. 
+    // Return the actual zooming scale.
+	float SetZoomScale(float zoom_scale);
 
 	// Get FPS (frames drawn in previous second)
 	int GetFPS(void) const;

@@ -9,7 +9,7 @@
 #include "UIType.h"
 
 namespace {
-	const int WINDOW_WIDTH = 360;
+	const int WINDOW_WIDTH = 960;
 	const int WINDOW_HEIGHT = 640;
 
 	// light field engine  
@@ -70,8 +70,8 @@ int main(int argc, char **argv)
 		//myEngine->SetLocationOfReferenceCamera(12);
 		myEngine->Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		myEngine->StartFPSThread();
-		//myEngine->SetBackground("view.jpg");
-		myEngine->SetBackground(0.2f, 0.3f, 0.4f);
+		myEngine->SetBackground("view.jpg");
+		//myEngine->SetBackground(0.2f, 0.3f, 0.4f);
 		glfwRestoreWindow(gWindow);
 
 		// main play loop
@@ -212,9 +212,9 @@ namespace {
 
 	void RenderScrollCallback(GLFWwindow *window, double xpos, double ypos)
 	{
-		float scale_factor = 0.1f;
-		zoom_scale = 1 + (float)ypos * scale_factor;
-		myEngine->SetZoomScale(zoom_scale);
+        static float zoomScale = 1.0f;
+        zoom_scale += ypos * 0.1f;
+		zoom_scale = myEngine->SetZoomScale(zoom_scale);
 	}
 
 	void ResizeCallback(GLFWwindow *window, int width, int height)
