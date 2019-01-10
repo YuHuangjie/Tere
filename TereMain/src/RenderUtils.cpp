@@ -86,10 +86,10 @@ void DestroyTexture(unsigned int &tex)
 
 void EnableMultiSample(bool flag)
 {
-#if GL_WIN || GL_OSX
+#ifdef GL_MULTISAMPLE
 	if (flag) { glEnable(GL_MULTISAMPLE); }
 	else      { glDisable(GL_MULTISAMPLE); }
-#elif GL_ES3_ANDROID
+#elif defined GL_MULTISAMPLE_EXT
 	if (flag) { glEnable(GL_MULTISAMPLE_EXT); }
 	else      { glDisable(GL_MULTISAMPLE_EXT); }
 #else
