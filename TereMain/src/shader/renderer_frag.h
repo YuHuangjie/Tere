@@ -125,7 +125,8 @@ const char *renderer_fragment_coder =
 "       weight = interpWeights[i]; \n"
 "		weight *= float(DepthTest(pixels[i].w, depthNoOccul[i], _EPS));	\n"	// false is 0
 //   alpha consumes 2 least significant bits in red channel
-"		pixel_alpha = float(int(pixels[i].r * 255.0) & 0x03) / 3.f;	\n"
+"		pixel_alpha = float((int(pixels[i].r * 255.0) & 0xC0) >> 6) / 3.f;	\n"
+"       pixels[i].r = float((int(pixels[i].r * 255.0) & 0x3F) << 2) / 255.0f;   \n"
 "		total_weight += weight; \n"
 "		color.rgb += weight * pixels[i].rgb * pixel_alpha;  \n"
 "		color.a += weight * pixel_alpha;	\n"

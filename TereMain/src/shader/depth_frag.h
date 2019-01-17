@@ -40,7 +40,7 @@ const char *depth_fragment_code =
 "	vec4 rgba = texture(RGBA, tex_coord).rgba;	\n"
 "	color = vec4(rgba.rgb, depth);\n"
 // encode alpha
-"	color.r = float((int(color.r * 255.0)&0xFC) | (int(rgba.a * 255.0)>>6)) / 255.0;\n"
+"	color.r = float(((int(color.r * 255.0)>>2)&0x3F) | (int(rgba.a * 255.0)&0xC0)) / 255.0;\n"
 "}\n";
 
 #endif
