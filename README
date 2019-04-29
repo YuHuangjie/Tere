@@ -6,7 +6,7 @@ Tere is a c++ library dedicated to image-based rendering with explicit geometry.
 
 ## Build Requirements
 
-No dependencies are required to build Tere. However, building samples requires [glfw](https://github.com/glfw/glfw) and [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo). We recommend installing 3rd-party packages with [vcpkg]().
+No dependencies are required to build Tere. However, building samples requires [glfw](https://github.com/glfw/glfw) and [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo). We recommend installing 3rd-party packages with [vcpkg](https://github.com/Microsoft/vcpkg).
 
 ```
 vcpkg install glfw3:x64-windows
