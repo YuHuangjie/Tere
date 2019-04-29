@@ -2,24 +2,20 @@
 #define IMAGE_H
 
 #include <memory>
+#include <cstdint>
 
-class Image
+struct Image
 {
-public:
+	std::shared_ptr<uint8_t> data;
+	int width;
+	int height;
+	int chn;
+
 	Image();
-	Image(unsigned char *data, int size, unsigned int width, unsigned int height);
-
-	unsigned char* GetData() const;
-	unsigned int GetWidth() const;
-	unsigned int GetHeight() const;
-	bool IsEmpty() const;
-
-protected:
-	std::unique_ptr<unsigned char> mpData;
-	unsigned int mWidth;
-	unsigned int mHeight;
+	Image(uint8_t *data, const int w, const int h, const int chn)
+		: data(data), width(w), height(h), chn(chn) {}
+	Image(std::shared_ptr<uint8_t> data, const int w, const int h, const int chn)
+		: data(data), width(w), height(h), chn(chn) {}
 };
-
-#include "Image.inl"
 
 #endif

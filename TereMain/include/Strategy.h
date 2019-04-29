@@ -1,20 +1,66 @@
-#ifndef INTERPSTRATEGY_H
-#define INTERPSTRATEGY_H
+#ifndef STRATEGY_H
+#define STRATEGY_H
 
 #include <vector>
-#include <cstddef>
-#include <glm/glm.hpp>
-
-// forward declarations
-class Camera;
+#include "camera/Extrinsic.hpp"
 
 using std::vector;
-using std::size_t;
 
-vector<size_t> DefaultIndexStrgFunc (const vector<Camera> &ref,
-	const Camera &vir, const glm::vec3 &p, const size_t maxn);
+/******************************************************************************
+ *				Searching stratergy
+ *****************************************************************************/
+class SearchStrategy
+{
+public:
+	virtual ~SearchStrategy() {};
 
-vector<float> DefaultWeightStrgFunc(const vector<Camera> &ref,
-	const Camera &vir, const glm::vec3 &p, const vector<size_t> &indices);
+	virtual vector<size_t> Search(const vector<Extrinsic> &refs, 
+		const Extrinsic &rcam, const size_t maxn) = 0;
+};
 
-#endif
+class DefaultSearchStrategy : public SearchStrategy
+{
+public:
+	DefaultSearchStrategy(const glm::vec3 &center);
+
+	virtual vector<size_t> Search(const vector<Extrinsic> &refs,
+		const Extrinsic &rcam, const size_t maxn) override;
+
+private:
+	glm::vec3 _center;
+};
+
+class AllSearchStrategy : public SearchStrategy
+{
+public:
+	AllSearchStrategy();
+
+	virtual vector<size_t> Search(const vector<Extrinsic> &refs,
+		const Extrinsic &rcam, const size_t maxn) override;
+};
+
+/******************************************************************************
+ *				Weighing stratergy
+ *****************************************************************************/
+class WeighStrategy
+{
+public:
+	virtual ~WeighStrategy() {};
+
+	virtual vector<float> Weigh(const std::vector<Extrinsic> &ref,
+		const Extrinsic &rcam, const std::vector<size_t> &indices) = 0;
+};
+
+class DefaultWeighStrategy : public WeighStrategy
+{
+public:
+	DefaultWeighStrategy(const glm::vec3 &center);
+
+	virtual vector<float> Weigh(const std::vector<Extrinsic> &ref,
+		const Extrinsic &rcam, const std::vector<size_t> &indices) override;
+
+private:
+	glm::vec3 _center;
+};
+
+#endif /* STRATEGY_H */

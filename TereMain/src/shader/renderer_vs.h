@@ -1,11 +1,11 @@
 #ifndef RENDER_VS_H
 #define RENDER_VS_H
 
-#include "common/Common.hpp"
+#include "Platform.h"
 
-const char *renderer_vertex_code =
-"//renv\n"
-#if PLATFORM_WIN || PLATFORM_OSX
+const char *SCENE_VS =
+"//snvs\n"
+#if defined PLATFORM_WIN || defined PLATFORM_OSX
 "#version 330 \n"
 #else
 "#version 300 es\n"

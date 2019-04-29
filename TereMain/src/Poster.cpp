@@ -1,21 +1,11 @@
 #include <stdexcept>
 
-#include "common/Common.hpp"
-#if GL_WIN || GL_OSX
-#include <GL/glew.h>
-#elif GL_ES3_IOS
-#include <OpenGLES/ES3/gl.h>
-#include <OpenGLES/ES3/glext.h>
-#elif GL_ES3_ANDROID
-#include <GLES3/gl3.h>
-#include <GLES2/gl2ext.h>
-#endif
-
 #include "Poster.h"
-#include "common/Log.hpp"
+#include "GLHeader.h"
 #include "RenderUtils.h"
 #include "shader/poster_vs.h"
 #include "shader/poster_frag.h"
+#include "Error.h"
 
 using std::runtime_error;
 
@@ -30,7 +20,7 @@ Poster::Poster()
 	Init();
 
 	if (!IsConsistent()) {
-		throw runtime_error("Poster is Inconsistent");
+		THROW_ON_ERROR("Poster is Inconsistent");
 	}
 }
 
@@ -45,7 +35,7 @@ Poster::Poster(unsigned int texture)
 	Init();
 
 	if (!IsConsistent()) {
-		throw runtime_error("Poster is Inconsistent");
+		THROW_ON_ERROR("Poster is Inconsistent");
 	}
 }
 
@@ -58,11 +48,10 @@ Poster::~Poster()
 }
 
 
-int Poster::Render(const vector<int>& viewport) const
+bool Poster::Render(const vector<int>& viewport) const
 {
 	if (!IsConsistent()) {
-		LOGE("Poster: Abort rendering due to inconsistency\n");
-		return -1;
+		RETURN_ON_ERROR("Poster: Abort rendering due to inconsistency\n");
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -84,7 +73,7 @@ int Poster::Render(const vector<int>& viewport) const
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 
-	return 0;
+	return true;
 }
 
 bool Poster::SetTexture(unsigned int texture)

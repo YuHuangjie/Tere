@@ -2,16 +2,17 @@
 #define TEXTUREFUSER_H
 
 #include <vector>
+#include <memory>
+
+#include "image/Image.hpp"
 
 using std::vector;
-
-class Image;
 
 class TextureFuser
 {
 public:
 	// Construct by giving background texture
-	TextureFuser(const size_t fbw, const size_t fbh, const Image& bg);
+	TextureFuser(const size_t fbw, const size_t fbh, const Image &);
 
 	// construct by given monochromatic background color
 	TextureFuser(const size_t fbw, const size_t fbh, 
@@ -22,11 +23,11 @@ public:
 	~TextureFuser();
 
 	// set foreground texture
-	bool SetForeground(unsigned int fgTex);
+	bool SetForeground(const unsigned int fgTex);
 
 	// set background color
-	bool SetBackground(float r, float g, float b);
-	bool SetBackground(const Image &image);
+	bool SetBackground(const float r, const float g, const float b);
+	bool SetBackground(const Image &);
 
 	// render method
 	int Render(const vector<int> &viewport) const;

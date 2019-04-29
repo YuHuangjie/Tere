@@ -2,13 +2,22 @@
 #define LINEARUI_H
 
 #include <vector>
-
 #include "UserInterface.h"
+#include "camera/Extrinsic.hpp"
 
 using std::vector;
 
-enum Direction : int;
-enum Major : unsigned int;
+enum Direction : int
+{
+	NEGTIVE = -1,
+	POSITIVE = 1
+};
+
+enum Major : unsigned int
+{
+	ROTATE_ALONG_ROW,
+	ROTATE_ALONG_COLUMN
+};
 
 // User interface for multi-row image sequences
 //
@@ -17,10 +26,10 @@ class LinearUI : public UserInterface
 public:
 	// @params rows	rows of ref cameras
 	// @params P	the position of current virtual camera among the 
-	//		camera list. The following disgram shows a camera list with 3 rows.
-	//      And a virtual camera being at second rows third column when p=n+2
+	//		camera list. The following diagram shows a camera list with 3 rows
+	//      and a virtual camera being at second row third column when p=n+2.
 	//		P must be consistent with the initial pose of virtual camera to 
-	//		render rightly.
+	//		render correctly.
 	//      When user drag leftward, p increases, unless _rowReversed is set.
 	// 
 	// |____|____|____|......|
@@ -32,27 +41,28 @@ public:
 	// |____|____|____|......|
 	// 2n  2n+1 2n+2 2n+3   3n-1
 	//
-	LinearUI(const vector<Camera> &camList, const size_t rows,
-		const int p);
+	LinearUI(const vector<Extrinsic> &list, const size_t rows,
+		const int p, const float width, const float height);
 
 	virtual std::string Name() const override;
-	virtual void Touch(const double x, const double y) override;
-	virtual Camera Leave(const double x, const double y, const Camera &view) override;
-	virtual Camera Move(const double x, const double y, const Camera &view) override;
+	virtual void SetResolution(const float width, const float height) override;
+	virtual void Touch(const float x, const float y) override;
+	virtual Extrinsic Leave(const float x, const float y, const Extrinsic &cur) override;
+	virtual Extrinsic Move(const float x, const float y, const Extrinsic &cur) override;
 
 	// hint interpolation cameras
 	virtual vector<size_t> HintInterp() override;
 
 protected:
-	const vector<Camera>& _camList;
+	vector<Extrinsic> _extrinsics;
 	const size_t _nCams;
 	size_t _rows;
 	size_t _cols;
-	bool _rowDegenerated;
+	bool _singleRow;
 
 	bool _activated;
-	double _px, _py;
-	double _cx, _cy;
+	float _px, _py;
+	float _cx, _cy;
 	float _pRow;		// row pointer to the layout
 	float _pCol;		// col pointer to the layout
 	Direction _direction;
@@ -61,6 +71,8 @@ protected:
 	bool _majorLock;	// major shouldn't change through interaction
 
 	vector<size_t> _neighbors;
+
+	float _width, _height;
 };
 
 

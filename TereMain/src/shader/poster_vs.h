@@ -1,11 +1,11 @@
 #ifndef POSTER_VS_H
 #define POSTER_VS_H
 
-#include "common/Common.hpp"
+#include "Platform.h"
 
 const char *poster_vs_code =
 "//posv\n"
-#if PLATFORM_WIN || PLATFORM_OSX
+#if defined PLATFORM_WIN ||defined PLATFORM_OSX
 "#version 330 \n"
 #else
 "#version 300 es\n"

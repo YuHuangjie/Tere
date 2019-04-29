@@ -1,11 +1,11 @@
 #ifndef DEPTH_FRAG_H
 #define DEPTH_FRAG_H
 
-#include "common/Common.hpp"
+#include "Platform.h"
 
-const char *depth_fragment_code =
-"//depf\n"
-#if PLATFORM_WIN || PLATFORM_OSX
+const char *DEPTH_FS =
+"//dpfs\n"
+#if defined PLATFORM_WIN || defined PLATFORM_OSX
 "#version 330 \n"
 #else
 "#version 300 es\n"
@@ -31,15 +31,17 @@ const char *depth_fragment_code =
 
 "void main()\n"
 "{\n"
-// equally divide the length between near and far (256 pieces)
+	// equally divide the length between near and far (256 pieces)
 "	float depth = (LinearizeDepth(gl_FragCoord.z) - near) / (far - near);\n"
 
 "	vec4 ndc = VP * vec4(vertex_position, 1.0);\n"
 "	ndc = ndc / ndc.w;\n"
 "	vec2 tex_coord = (ndc.xy + vec2(1.0, 1.0)) / vec2(2.0, 2.0);\n"
+	// image is in top-down format
+"	tex_coord.y = 1.f - tex_coord.y;	\n"
 "	vec4 rgba = texture(RGBA, tex_coord).rgba;	\n"
 "	color = vec4(rgba.rgb, depth);\n"
-// encode alpha
+	// encode alpha
 "	color.r = float((int(color.r * 255.0)&0xFC) | (int(rgba.a * 255.0)>>6)) / 255.0;\n"
 "}\n";
 

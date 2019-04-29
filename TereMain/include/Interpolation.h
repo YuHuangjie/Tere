@@ -8,6 +8,4 @@
 // interpolated by LERP.
 Extrinsic Interp(const Extrinsic& left, const Extrinsic &right, const float t = 0.f);
 
-
-
-#endif
+#endif /* INTERPOLATION_H */

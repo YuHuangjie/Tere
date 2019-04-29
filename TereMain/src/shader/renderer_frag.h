@@ -1,11 +1,11 @@
 #ifndef RENDER_FRAG_H
 #define RENDER_FRAG_H
 
-#include "common/Common.hpp"
+#include "Platform.h"
 
-const char *renderer_fragment_coder =
-"//renf\n"
-#if PLATFORM_WIN || PLATFORM_OSX
+const char *SCENE_FS =
+"//snfs\n"
+#if defined PLATFORM_WIN || defined PLATFORM_OSX
 "#version 330 \n"
 #else
 "#version 300 es\n"
@@ -135,15 +135,17 @@ const char *renderer_fragment_coder =
 // are 0
 "	if (total_weight > 0.0f) {\n"
 "       color = color / total_weight;\n"
+		// light field is in BGR format
+"		color.xz = color.zx;	\n"
 "	}\n"
 "   else {\n"
 // 3 strategies to handle miss rendered fragment
 //      1. assign a hardcoded missing color (for debugging mainly)
+"		color = missColor; \n"
 //      2. assign vertex color
+// "	color.xyz = vColor; \n"
 //      3. considered transparent (use background color)
-// "		color = missColor; \n"
-// "		color.xyz = vColor; \n"
-"		discard; \n"
+//"		discard; \n"
 "	}\n"
 
 "	//color = vec4(0, 0, 0, 1);\n"

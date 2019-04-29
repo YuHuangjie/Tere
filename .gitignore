@@ -2,3 +2,5 @@ build/
 build-*/
 Dependencies/
 matlab_output
+.vs/
+x64/

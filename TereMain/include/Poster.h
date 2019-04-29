@@ -18,7 +18,7 @@ public:
 	bool SetTexture(unsigned int texture);
 
 	// render method
-	int Render(const vector<int> &viewport) const;
+	bool Render(const vector<int> &viewport) const;
     
     // set screen framebuffer
     void SetScreenFBO(unsigned int fbo);

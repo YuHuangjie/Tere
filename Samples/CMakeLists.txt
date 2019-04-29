@@ -4,66 +4,78 @@
 
 project(TereSample)
 
-if (BUILD_SAMPLES)
-	# Require opengl
-	find_package(OPENGL REQUIRED)
-	if (NOT OPENGL_FOUND)
-		message(SEND_ERROR "Package OpenGL required, but not found!")
-	endif()
+# Specifiy necessary dependencies
+if (WIN32)
+	# Use vcpkg to resolve dependencies on Windows platform
+	set(CMAKE_TOOLCHAIN_FILE 
+		"C:/vcpkg/scripts/buildsystems/vcpkg.cmake" 
+		CACHE 
+		FILEPATH 
+		"Path of vcpkg tool chain file"
+	)
+endif()
 
-	# Require glfw
-	find_package(GLFW3 REQUIRED)
-	if (NOT GLFW3_FOUND)
-		message(SEND_ERROR "Package glfw3 required, but not found!")
-	endif()
+# Require opengl
+find_package(OpenGL REQUIRED)
 
-	# Require glm
-	find_package(GLM REQUIRED)
-	if (NOT GLM_FOUND)
-		message(SEND_ERROR "Package glm required, but not found!")
-	endif()
+find_package(OpenMP)
 
-	# Require glew
-	find_package(GLEW REQUIRED)
-	if (NOT GLEW_FOUND)
-		message(SEND_ERROR "Package glew required, but not found!")
-	endif()
+# Require glfw
+find_package(glfw3 CONFIG REQUIRED)
 
-	# Require glew
-	find_package(WEBP REQUIRED)
-	if (NOT WEBP_FOUND)
-		message(SEND_ERROR "Package webp required, but not found!")
-	endif()
+# Require glew
+find_package(JPEG REQUIRED)
+SET(TURBOJPEG_LIBRARIES 
+	optimized 
+	turbojpeg 
+	debug 
+	turbojpegd
+	)
 
-	# Require glew
-	find_package(JPEG-TURBO REQUIRED)
-	if (NOT JPEG-TURBO_FOUND)
-		message(SEND_ERROR "Package JPEG-TURBO required, but not found!")
-	endif()
+include_directories("${CMAKE_SOURCE_DIR}/TereMain/include")
 
-	include_directories("${GLFW3_INCLUDE_DIRS}")
-	include_directories("${GLEW_INCLUDE_DIRS}")
-	include_directories("${GLM_INCLUDE_DIRS}")
-	include_directories("${CMAKE_SOURCE_DIR}/TereMain/include")
+add_executable(
+	TereSample 
+	main.cpp
+	mesh/tiny_obj_loader.cc
+	mesh/tinyply.cpp
+	mesh/Geometry.cpp
+	image/ImageCodec.cpp
+	image/JpegCodec.cpp
+	ProfileIO.cpp
+	)
 
-	link_directories("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-
+if (WIN32 OR UNIX)
 	add_executable(
 		TereSample 
-		main.cpp
+		glew.c
 		)
-	add_dependencies(TereSample TereMain)
-
-	target_link_libraries(TereSample 
-		${OPENGL_LIBRARY}
-		${GLFW3_LIBRARIES} 
-		${GLEW_LIBRARIES} 
-		${WEBP_LIBRARIES} 
-		${JPEG-TURBO_LIBRARIES}
-		TereMain.lib
-		)
-
-	# installation
-	install(TARGETS TereSample 
-		RUNTIME DESTINATION "bin")
+	add_definitions(-DGLEW_STATIC)
 endif()
+
+target_link_libraries(TereSample 
+	PRIVATE
+	${OpenGL_LIBRARIES}
+	glfw
+	${TURBOJPEG_LIBRARIES}
+	Tere
+	)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(
+		TereSample 
+		PRIVATE 
+		OpenMP::OpenMP_CXX
+		)
+endif()
+target_include_directories(
+	TereSample 
+	PRIVATE
+	)
+
+# installation
+install(TARGETS 
+	TereSample 
+	RUNTIME 
+	DESTINATION 
+	"bin"
+	)

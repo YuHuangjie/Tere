@@ -1,60 +1,53 @@
-#ifndef INTRINSIC_H
-#define INTRINSIC_H
+#ifndef INTRINSIC_HPP
+#define INTRINSIC_HPP
 
-#include <cstdint>
 #include <cmath>
+#include <glm/glm.hpp>
 
-class Intrinsic
+struct Intrinsic
 {
-public:
-	Intrinsic()
-		: mInitialized(false),
-		mCx(0.0), mCy(0.0),
-		mFx(0.0), mFy(0.0),
-		mImgW(0), mImgH(0)
+	/* Center of projection */
+	float cx, cy;
+
+	/* Focal length */
+	float fx, fy;
+
+	Intrinsic()	: cx(0.0), cy(0.0), fx(0.0), fy(0.0)
 	{}
 
-	Intrinsic(double cx, double cy, double fx, double fy)
-		: mInitialized(true), mCx(cx), mCy(cy), mFx(fx), mFy(fy), 
-		mImgW(static_cast<uint32_t>(cx * 2)), 
-		mImgH(static_cast<uint32_t>(cy * 2))
+	Intrinsic(const float cx, const float cy, const float fx, const float fy)
+		: cx(cx), cy(cy), fx(fx), fy(fy)
 	{}
 
-	Intrinsic(double cx, double cy, double fx, double fy, 
-		uint32_t imgw, uint32_t imgh)
-		: mInitialized(true), mCx(cx), mCy(cy), mFx(fx), mFy(fy), 
-		mImgW(imgw), mImgH(imgh)
+	Intrinsic(const float K[9]) 
+		: cx(K[2]), cy(K[5]), fx(K[0]), fy(K[4])
 	{}
 
-	inline bool IsInitialized() const { return mInitialized; }
-	inline double GetCx() const { return mCx; }
-	inline double GetCy() const { return mCy; }
-	inline double GetFx() const { return mFx; }
-	inline double GetFy() const { return mFy; }
-	inline double GetFOVW() const { return 2*std::atan2(mCx, mFx); }
-	inline double GetFOVH() const { return 2*std::atan2(mCy, mFy); }
-	inline uint32_t GetWidth() const { return mImgW; }
-	inline uint32_t GetHeight() const { return mImgH; }
+	inline float fovw() const { return 2 * std::atan2(cx, fx); }
+	inline float fovh() const { return 2 * std::atan2(cy, fy); }
 
-protected:
-	bool mInitialized;
+	/* Get projection matrix (column major) */
+	inline glm::mat4 ProjMat(const float near, const float far,
+		const float w = 0, const float h = 0) const
+	{
+		float width = (w == 0 ? 2 * cx : w);
+		float height = (h == 0 ? 2 * cy : h);
+		float l = -cx / fx * near;
+		float r = (width - cx) / fx * near;
+		float b = (cy - height) / fy * near;
+		float t = cy / fy * near;
 
-	/**
-	 * Center of projection
-	 */
-	double mCx, mCy;
+		glm::mat4 P(0);
+		P[0][0] = 2 * near / (r - l);
+		P[2][0] = (r + l) / (r - l);
+		P[1][1] = 2 * near / (t - b);
+		P[2][1] = (t + b) / (t - b);
+		P[2][2] = -(far + near) / (far - near);
+		P[2][3] = -1;
+		P[3][2] = -2 * near * far / (far - near);
 
-	/**
-	 * Focal length
-	 */
-	double mFx, mFy;
-
-	/**
-	 * Image width and height
-	 *
-	 * These two properties are put here for convenience's sake
-	 */
-	uint32_t mImgW, mImgH;
+		return P;
+	}
 };
 
 #endif

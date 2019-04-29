@@ -1,11 +1,11 @@
 #ifndef TEXTURE_FRAG_H
 #define TEXTURE_FRAG_H
 
-#include "common/Common.hpp"
+#include "Platform.h"
 
 const char *fuser_frag_code =
 "//fusfv\n"
-#if PLATFORM_WIN || PLATFORM_OSX
+#if defined PLATFORM_WIN || defined PLATFORM_OSX
 "#version 330 \n"
 #else
 "#version 300 es\n"
