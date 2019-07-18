@@ -145,16 +145,16 @@ Geometry Geometry::FromPly(const std::string &filename)
 	catch (const std::exception & e) { throw e; }
 
 	try { normals = file.request_properties_from_element("vertex", { "nx", "ny", "nz" }); }
-	catch (const std::exception & e) { throw e; }
+	catch (const std::exception & e) { cout << e.what() << endl; }
 
 	try { colors = file.request_properties_from_element("vertex", { "red", "green", "blue" }); }
-	catch (const std::exception & e) { throw e; }
+	catch (const std::exception & e) { cout << e.what() << endl; }
 
 	try { faces = file.request_properties_from_element("face", { "vertex_indices" }, 3); }
 	catch (const std::exception & e) { throw e; }
 
 	try { texcoords = file.request_properties_from_element("vertex", { "u", "v" }); }
-	catch (const std::exception & e) { throw e; }
+	catch (const std::exception & e) { cout << e.what() << endl; }
 
 	file.read(ss);
 
