@@ -32,16 +32,6 @@ public:
 
 	// render method
 	int Render(const vector<int> &viewport);
-    
-    // Replace high resolution textures
-    //void ReplaceHighTexture();
-
-	// render depth maps
-	/*GLuint AppendDepth(GLuint rgb, unsigned int width, 
-		unsigned int height, const mat4 &VP, const mat4 &V);*/
-
-	// set light field texture
-	//void SetLightFieldTexs(const vector<GLuint> &lfTexs);
 
 	// Set interpolation cameras
 	void ClearInterpCameras();
@@ -49,9 +39,6 @@ public:
 
 	// set virtual camera 
 	void SetViewer(const glm::mat4 &M, const glm::mat4 &V, const glm::mat4 &P);
-
-	// indicate interaction is active
-	//inline void UseHighTexture(bool flag) { useHighTexture = flag; }
 
 private:
 	bool RefreshDepth();

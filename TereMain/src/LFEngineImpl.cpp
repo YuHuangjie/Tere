@@ -113,7 +113,6 @@ LFEngineImpl::LFEngineImpl(const size_t nCams, const RENDER_MODE mode)
 
 	_scene.reset(new TereScene(nCams));
 	_scene->rmode = mode;
-	//InitEngine(profile);
 
 	if (nCams > 12 && mode == ALL) {
 		LOGW("[WARNING] LFEngine: No. cameras is too large. Try not use ALL mode\n");
@@ -122,7 +121,6 @@ LFEngineImpl::LFEngineImpl(const size_t nCams, const RENDER_MODE mode)
 
 LFEngineImpl::~LFEngineImpl(void)
 {
-	//gLFLoader.reset(nullptr);
 	_scene = nullptr;
 	_renderer = nullptr;
 	_textureFuser = nullptr;
@@ -203,7 +201,6 @@ bool LFEngineImpl::SetCamera(const size_t id, const array<float, 9> &K,
 
 void LFEngineImpl::SetRows(const size_t rows)
 {
-	//_configured = false;
 	_scene->rows = rows;
 }
 
