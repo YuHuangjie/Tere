@@ -61,10 +61,10 @@ public:
 
 			glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &msg[0]);
 			if (msg.size() != 0) {
-				THROW_ON_ERROR("FRAGMENT ERROR: %s, CODE: %s", &msg[0], fsPointer);
+				THROW_ON_ERROR("FRAGMENT ERROR: %s, CODE: %.7s", &msg[0], fsPointer);
 			}
 			else {
-				THROW_ON_ERROR("VERTEX ERROR: Empty, CODE: %s", fsPointer);
+				THROW_ON_ERROR("FRAGMENT ERROR: Empty, CODE: %.7s", fsPointer);
 			}
 		}
 
