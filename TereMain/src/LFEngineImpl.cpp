@@ -11,6 +11,7 @@
 #include "Strategy.h"
 #include "Interpolation.h"
 
+#include "Const.h"
 #include "LFEngineImpl.h"
 #include "Error.h"
 #include "Renderer.h"
@@ -114,7 +115,7 @@ LFEngineImpl::LFEngineImpl(const size_t nCams, const RENDER_MODE mode)
 	_scene.reset(new TereScene(nCams));
 	_scene->rmode = mode;
 
-	if (nCams > 12 && mode == ALL) {
+	if (nCams > MAX_NUM_INTERP && mode == ALL) {
 		LOGW("[WARNING] LFEngine: No. cameras is too large. Try not use ALL mode\n");
 	}
 }
@@ -316,7 +317,7 @@ void LFEngineImpl::_Draw(void)
 				_scene->width, _scene->height));
 
 		// search interpolation cameas and calculate weights
-		size_t nInterp = 12;
+		size_t nInterp = MAX_NUM_INTERP;
 		vector<size_t> indices;
 		vector<float> weights;
 

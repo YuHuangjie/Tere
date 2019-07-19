@@ -25,6 +25,9 @@ file(GLOB
 add_definitions(-DUSE_TIMING)
 add_definitions(-DUSE_LOG)
 
+# control maximum interpolation references
+#add_definitions(-DMAX_NUM_INTERP=20)
+
 if (USE_CUDA)
 	add_definitions(-DUSE_CUDA)
 

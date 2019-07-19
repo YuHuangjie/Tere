@@ -2,6 +2,7 @@
 #define RENDER_VS_H
 
 #include "Platform.h"
+#include "Const.h"
 
 const char *SCENE_VS =
 "//snvs\n"
@@ -14,6 +15,8 @@ const char *SCENE_VS =
 "layout(location = 0) in vec3 vertex_position_modelspace; \n"	// vertex location in model space
 "layout(location = 1) in vec3 color; \n"	// vertex color
 
+"const int MAX_NUM_INTERP = "
+STR_MAX_NUM_INTERP(MAX_NUM_INTERP)"; \n"
 // View Projection matrix of rendering camera
 "uniform mat4 VP;\n"
 // reference cameras' VP matices (each matrix of the size [4*N_REF_CAMERAS, 4])
@@ -21,12 +24,12 @@ const char *SCENE_VS =
 // reference cameras' V matices (each matrix of the size [4*N_REF_CAMERAS, 4])       
 "uniform highp sampler2D ref_cam_V; \n"
 // reference cameras' indices
-"uniform highp int[12] interpIndices; \n"
+"uniform highp int[MAX_NUM_INTERP] interpIndices; \n"
 "uniform highp int nInterps; \n"
 // number of reference cameras       
 "uniform int N_REF_CAMERAS;\n"
 
-"out float[12] depthNoOccul;    \n"
+"out float[MAX_NUM_INTERP] depthNoOccul;    \n"
 "out vec4 vertex_location;\n"
 "out vec3 vColor;\n"
 

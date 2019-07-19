@@ -2,6 +2,11 @@
 #define RENDER_FRAG_H
 
 #include "Platform.h"
+#include "Const.h"
+
+#if MAX_NUM_INTERP > 20
+#error MAX_NUM_INTERP must not be larger than 20
+#endif
 
 const char *SCENE_FS =
 "//snfs\n"
@@ -16,17 +21,19 @@ const char *SCENE_FS =
 // quad texture test
 "in highp vec2 my_tex_coord;\n"
 
+"const int MAX_NUM_INTERP = "
+STR_MAX_NUM_INTERP(MAX_NUM_INTERP)"; \n"
 "in highp vec4 vertex_location;   \n"
-"in highp float[12] depthNoOccul; \n"
+"in highp float[MAX_NUM_INTERP] depthNoOccul; \n"
 "in highp vec3 vColor; \n"
 
-"uniform highp int[12] interpIndices; \n"
-"uniform highp float[12] interpWeights; \n"
+"uniform highp int[MAX_NUM_INTERP] interpIndices; \n"
+"uniform highp float[MAX_NUM_INTERP] interpWeights; \n"
 "uniform highp int nInterps; \n"
 "uniform highp sampler2D ref_cam_VP;\n"
 "uniform highp sampler2D ref_cam_V;\n"
 "uniform int N_REF_CAMERAS;\n"
-"uniform mediump sampler2D lightField[12]; \n"
+"uniform mediump sampler2D lightField[MAX_NUM_INTERP]; \n"
 "uniform highp float near;\n"
 "uniform highp float far;\n"
 
@@ -52,10 +59,34 @@ const char *SCENE_FS =
 "}\n"
 
 "#define PROJECT(i) do { \\\n"
-"	if (nInterps >= i+1) {	\\\n"
-"		tex_coord = CalcTexCoordRoutine(interpIndices[i]);\\\n"
-"		pixels[i] = texture(lightField[i], vec2(tex_coord.x, tex_coord.y)).rgba;\\\n"
+"	if (nInterps >= i) {	\\\n"
+"		tex_coord = CalcTexCoordRoutine(interpIndices[i-1]);\\\n"
+"		pixels[i-1] = texture(lightField[i-1], vec2(tex_coord.x, tex_coord.y)).rgba;\\\n"
 "	} } while(false);	\n"
+
+// help macros for various MAX_NUM_INTERP
+"#define REPEAT_PROJECT1() { PROJECT(1); }\n"
+"#define REPEAT_PROJECT2() { REPEAT_PROJECT1(); PROJECT(2); }\n"
+"#define REPEAT_PROJECT3() { REPEAT_PROJECT2(); PROJECT(3); }\n"
+"#define REPEAT_PROJECT4() { REPEAT_PROJECT3(); PROJECT(4); }\n"
+"#define REPEAT_PROJECT5() { REPEAT_PROJECT4(); PROJECT(5); }\n"
+"#define REPEAT_PROJECT6() { REPEAT_PROJECT5(); PROJECT(6); }\n"
+"#define REPEAT_PROJECT7() { REPEAT_PROJECT6(); PROJECT(7); }\n"
+"#define REPEAT_PROJECT8() { REPEAT_PROJECT7(); PROJECT(8); }\n"
+"#define REPEAT_PROJECT9() { REPEAT_PROJECT8(); PROJECT(9); }\n"
+"#define REPEAT_PROJECT10() { REPEAT_PROJECT9(); PROJECT(10); }\n"
+"#define REPEAT_PROJECT11() { REPEAT_PROJECT10(); PROJECT(11); }\n"
+"#define REPEAT_PROJECT12() { REPEAT_PROJECT11(); PROJECT(12); }\n"
+"#define REPEAT_PROJECT13() { REPEAT_PROJECT12(); PROJECT(13); }\n"
+"#define REPEAT_PROJECT14() { REPEAT_PROJECT13(); PROJECT(14); }\n"
+"#define REPEAT_PROJECT15() { REPEAT_PROJECT14(); PROJECT(15); }\n"
+"#define REPEAT_PROJECT16() { REPEAT_PROJECT15(); PROJECT(16); }\n"
+"#define REPEAT_PROJECT17() { REPEAT_PROJECT16(); PROJECT(17); }\n"
+"#define REPEAT_PROJECT18() { REPEAT_PROJECT17(); PROJECT(18); }\n"
+"#define REPEAT_PROJECT19() { REPEAT_PROJECT18(); PROJECT(19); }\n"
+"#define REPEAT_PROJECT20() { REPEAT_PROJECT19(); PROJECT(20); }\n"
+"#define REPEAT_PROJECT() REPEAT_PROJECT"
+STR_MAX_NUM_INTERP(MAX_NUM_INTERP)"()\n"
 
 /******************************************************
 * Do view-dependent texture blending. The number of reference cameras for
@@ -72,21 +103,10 @@ const char *SCENE_FS =
 "   vec2	tex_coord		= vec2(0.0);  \n"
 "	float	pixel_alpha		= 0.f; \n"
 "	color					= vec4(0.0);      \n"
-"	vec4[12] pixels;	\n"
+"	vec4[MAX_NUM_INTERP] pixels;	\n"
 
 // fetch projected pixels
-"	PROJECT(0);\n"
-"	PROJECT(1);\n"
-"	PROJECT(2);\n"
-"	PROJECT(3);\n"
-"	PROJECT(4);\n"
-"	PROJECT(5);\n"
-"	PROJECT(6);\n"
-"	PROJECT(7);\n"
-"	PROJECT(8);\n"
-"	PROJECT(9);\n"
-"	PROJECT(10);\n"
-"	PROJECT(11);\n"
+"	REPEAT_PROJECT();\n"
 
 // Blend reference pixels
 "	for (int i = 0; i != nInterps; ++i) {\n"

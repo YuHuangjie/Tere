@@ -9,6 +9,7 @@
 #include "WeightedCamera.h"
 #include "GLHeader.h"
 #include "TereScene.h"
+#include "Const.h"
 
 #ifdef USE_CUDA
 #include "cuda_gl_interop.h"
@@ -47,7 +48,7 @@ private:
 	enum {
 		FRAMEBUFFER_WIDTH = 1024,	// width of rendered texture
 		FRAME_BUFFER_HEIGHT = 1024,	// height of rendered texture
-		NUM_INTERP = 12,			// maximum interp camera counts
+		NUM_INTERP = MAX_NUM_INTERP,	// maximum interp camera counts
 	};
 
 	shared_ptr<TereScene> _scene;
