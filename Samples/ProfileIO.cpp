@@ -120,13 +120,13 @@ static int ReadList(const string &filename, const string &prefix,
 static void ParseProfile(const string &prefix,
 	const map<string, string> &profile, Profile &p)
 {
-	size_t nCams;
+	size_t nCams = 0;
 	string imageListF;
 	string intrinListF, extrinListF;
 	string meshF;
 	string _mode;
 	RENDER_MODE mode;
-	size_t rows;
+	size_t rows = 0;
 	vector<string> imageList, intrinList, extrinList;
 
 	for (auto it = profile.cbegin(); it != profile.cend(); ++it) {
