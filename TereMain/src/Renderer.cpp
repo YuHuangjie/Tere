@@ -411,8 +411,8 @@ int Renderer::Render(const vector<int> &_viewport)
 	glViewport(_viewport[0], _viewport[1], _viewport[2], _viewport[3]);
 
 	// Transfer uniform variables
-	glUniform1f(_sNearLct, _scene->glnear);
-	glUniform1f(_sFarLct, _scene->glfar);
+	glUniform1f(_sNearLct, /*_scene->glnear*/0.01f);
+	glUniform1f(_sFarLct, std::max(_scene->glfar, 1000.f));
 	glUniform1i(_sNCamLct, _scene->nCams);
 	glUniformMatrix4fv(_sVPLct, 1, GL_FALSE, glm::value_ptr(_proj * _view * _model));
 
