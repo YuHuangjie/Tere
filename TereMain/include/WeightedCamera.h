@@ -1,9 +1,8 @@
 #ifndef WEIGHTEDCAMERA_H
 #define WEIGHTEDCAMERA_H
 
-class WeightedCamera
+struct WeightedCamera
 {
-public:
 	WeightedCamera(int i, float w) : index(i), weight(w) {}
 
 	int index;

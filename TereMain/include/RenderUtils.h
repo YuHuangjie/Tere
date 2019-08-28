@@ -1,9 +1,7 @@
 #ifndef RENDERUTILS_H
 #define RENDERUTILS_H
 
-#include <cstddef>
-
-class Image;
+#include <cstdint>
 
 // compile vertex, fragment shaders
 unsigned int LoadShaders(const char * vs_code, const char * frag_code);
@@ -13,7 +11,10 @@ unsigned int LoadShaders(const char * vs_code, const char * frag_code);
 bool GenFrameBuffer(unsigned int &fbo, unsigned int &tex, unsigned int &rbo,
 	const size_t width, const size_t height);
 
-unsigned int GetTextureFromImage(const Image &image);
+// Generate texture from raw image data
+unsigned int GetTextureFromImage(const uint8_t * const bg,
+	const int bgW, const int bgH, const int channels);
+
 void DestroyTexture(unsigned int &tex);
 
 // disable multisampling function

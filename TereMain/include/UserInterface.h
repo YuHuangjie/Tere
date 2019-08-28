@@ -1,35 +1,21 @@
-//
-//  UserInterface.hpp
-//  GLEssentials
-//
-//  Created by apchen on 2017/6/11.
-//  Copyright © 2017年 Dan Omachi. All rights reserved.
-//
-
-#ifndef UserInterface_h
-#define UserInterface_h
+#ifndef USER_INTERFACE_H
+#define USER_INTERFACE_H
 
 #include <string>
 #include <vector>
-
-class Camera;
+#include "camera/Extrinsic.hpp"
 
 class UserInterface
 {
 public:
-	UserInterface();
 	virtual ~UserInterface() {}
 
 	virtual std::string Name() const = 0;
-	virtual void SetResolution(const int width, const int height);
-    virtual void Touch(const double x, const double y) = 0;
-	virtual Camera Leave(const double x, const double y, const Camera &view) = 0;
-	virtual Camera Move(const double x, const double y, const Camera &view) = 0;
+	virtual void SetResolution(const float width, const float height) = 0;
+    virtual void Touch(const float x, const float y) = 0;
+	virtual Extrinsic Leave(const float x, const float y, const Extrinsic &cur) = 0;
+	virtual Extrinsic Move(const float x, const float y, const Extrinsic &cur) = 0;
 	virtual std::vector<size_t> HintInterp() = 0;
-
-protected:
-	// screen size
-	int screen_width, screen_height;
 };
 
-#endif /* UserInterface_hpp */
+#endif /* USER_INTERFACE_H */

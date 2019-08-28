@@ -4,34 +4,22 @@
 #include <algorithm>
 
 #include "LinearUI.h"
-#include "camera/Camera.hpp"
+#include "camera/Extrinsic.hpp"
 #include "Interpolation.h"
+#include "Error.h"
 
 using std::vector;
-using std::runtime_error;
 
 static float NormalizePoint(const float p, const float list);
 
-enum Direction : int
-{
-	NEGTIVE = -1,
-	POSITIVE = 1
-};
-
-enum Major : unsigned int
-{
-	ROTATE_ALONG_ROW,
-	ROTATE_ALONG_COLUMN
-};
-
-LinearUI::LinearUI(const vector<Camera> &camList,
-	const size_t rows, const int p) 
+LinearUI::LinearUI(const vector<Extrinsic> &list,
+	const size_t rows, const int p, const float width, const float height)
 	: UserInterface(),
-	_camList(camList),
-	_nCams(camList.size()),
+	_extrinsics(list),
+	_nCams(list.size()),
 	_rows(0),
 	_cols(0),
-	_rowDegenerated(false),
+	_singleRow(false),
 	_activated(false),
 	_px(0.0),
 	_py(0.0),
@@ -42,33 +30,36 @@ LinearUI::LinearUI(const vector<Camera> &camList,
 	_direction(NEGTIVE),
 	_rowReversed(false),
 	_major(ROTATE_ALONG_ROW),
-	_neighbors()
+	_neighbors(),
+	_width(width),
+	_height(height)
 {
 	if (_nCams == 0) {
-		throw runtime_error("LinearUI: empty list");
+		THROW_ON_ERROR("LinearUI: empty list");
 	}
 
 	// calculate rows and columns
 	std::div_t res = std::div(static_cast<int>(_nCams), static_cast<int>(rows));
 	if (res.rem != 0) {
-		throw runtime_error("LinearUI: incorrect arguments");
+		THROW_ON_ERROR("LinearUI: incorrect arguments");
 	}
 	_rows = rows;
 	_cols = res.quot;
-	_rowDegenerated = (_rows == 1);
+	_singleRow = (_rows == 1);
 	_majorLock = true;
 	_major = ROTATE_ALONG_COLUMN;
 
-	// where in the layout is the initial pointer
+	// where in the layout is *p*
 	_pRow = static_cast<float>(p / _cols);
 	_pCol = static_cast<float>(p % _cols);
 	_neighbors.push_back(_pRow * _cols + _pCol);
 
 	if (_cols >= 2) {
-		// reverse list if the sequence of cameras doesn't match the direction
-		// in the diagram
-		glm::vec4 cam2InCam1 = _camList[0].GetViewMatrix() * glm::vec4(
-			_camList[1].GetPosition(), 1.0f);
+		// The second camera is on the left of the first camera.
+		// In this case, some calculation should change.
+		glm::mat4 world2FirstCam = _extrinsics[0].viewMat;
+		glm::vec4 posOfSecondCam = glm::vec4(_extrinsics[1].Pos(), 1.f);
+		glm::vec4 cam2InCam1 = world2FirstCam * posOfSecondCam;
 		if (cam2InCam1.x < 0.f) {
 			_rowReversed = true;
 		}
@@ -82,7 +73,13 @@ std::string LinearUI::Name() const
 	return "linear";
 }
 
-void LinearUI::Touch(const double x, const double y)
+void LinearUI::SetResolution(const float width, const float height)
+{
+	_width = width;
+	_height = height;
+}
+
+void LinearUI::Touch(const float x, const float y)
 {
 	_activated = true;
 	_majorLock = false;
@@ -90,7 +87,7 @@ void LinearUI::Touch(const double x, const double y)
 	_py = y;
 }
 
-Camera LinearUI::Leave(const double x, const double y, const Camera &view)
+Extrinsic LinearUI::Leave(const float x, const float y, const Extrinsic &view)
 {
 	_activated = false;
 	_px = x;
@@ -119,10 +116,10 @@ Camera LinearUI::Leave(const double x, const double y, const Camera &view)
 		_pRow = right;
 	}
 
-	return _camList[nearest];
+	return _extrinsics[nearest];
 }
 
-Camera LinearUI::Move(const double x, const double y, const Camera &view)
+Extrinsic LinearUI::Move(const float x, const float y, const Extrinsic &view)
 {
 	if (!_activated) {
 		return view;
@@ -132,7 +129,7 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 	}
 
 	// determine the major rotation axis
-	if (!_rowDegenerated && !_majorLock) {
+	if (!_singleRow && !_majorLock) {
 		_major = ROTATE_ALONG_ROW;
 		if (std::abs(x - _px) > std::abs(y - _py)) {
 			_major = ROTATE_ALONG_COLUMN;
@@ -147,7 +144,7 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 
 		// a full drag (from one end of the screen to the other) covers half list
 		float aFullDrag = _cols / 2.f;
-		float cover = (_cx - _px) / screen_width * aFullDrag;
+		float cover = (_cx - _px) / _width * aFullDrag;
 
 		_pCol += cover * (_rowReversed ? 1 : -1);
 		_pCol = NormalizePoint(_pCol, _cols);
@@ -171,9 +168,8 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 		// interpolate pose
 		size_t neighbor1 = _pRow*_cols + left;
 		size_t neighbor2 = _pRow*_cols + right;
-		Extrinsic interp = Interp(_camList[neighbor1].GetExtrinsic(),
-			_camList[neighbor2].GetExtrinsic(), t);
-		Camera result(interp, view.GetIntrinsic());
+		Extrinsic interp = Interp(_extrinsics[neighbor1],
+			_extrinsics[neighbor2], t);
 		
 		// interpolation hints
 		_neighbors.clear();
@@ -181,14 +177,14 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 		_neighbors.push_back(neighbor2);
 
 		_px = _cx;
-		return result;
+		return interp;
 	}
 	else /* _major==ROTATE_ALONG_ROW */ {
 		_cy = y;
 		_direction = _cy > _py ? NEGTIVE : POSITIVE;
 
 		float aFullDrag = _rows;
-		float cover = (_cy - _py) / screen_height * aFullDrag;
+		float cover = (_cy - _py) / _height * aFullDrag;
 
 		_pRow -= cover;
 		if (_pRow < 0.f) { _pRow = 0.f; }
@@ -202,9 +198,8 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 		// interpolate pose
 		size_t neighbor1 = left*_cols + _pCol;
 		size_t neighbor2 = right*_cols + _pCol;
-		Extrinsic interp = Interp(_camList[neighbor1].GetExtrinsic(),
-			_camList[neighbor2].GetExtrinsic(), t);
-		Camera result(interp, view.GetIntrinsic());
+		Extrinsic interp = Interp(_extrinsics[neighbor1],
+			_extrinsics[neighbor2], t);
 
 		// interpolation hints
 		_neighbors.clear();
@@ -212,7 +207,7 @@ Camera LinearUI::Move(const double x, const double y, const Camera &view)
 		_neighbors.push_back(neighbor2);
 
 		_py = _cy;
-		return result;
+		return interp;
 	}
 }
 

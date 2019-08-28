@@ -1,31 +1,32 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef COMMON_LOG_H
+#define COMMON_LOG_H
 
-#if ENABLE_LOG
+#ifdef USE_LOG
 
-#include "Common.hpp"
+#include "Platform.h"
 
 /* LOG function */
-#if PLATFORM_WIN || PLATFORM_IPHONE || PLATFORM_OSX
+#if defined PLATFORM_WIN ||defined PLATFORM_IPHONE ||defined PLATFORM_OSX
 #include <cstdio>
-#define LOGI(...) printf(__VA_ARGS__)
+#define LOGI(...) fprintf(stdout, __VA_ARGS__)
 #define vLOGI(format, arg_list) vprintf(format, arg_list)
-#define LOGD(...) printf(__VA_ARGS__)
-#define vLOGD(format, arg_list) vprintf(format, arg_list)
-#define LOGW(...) printf(__VA_ARGS__)
-#define vLOGW(format, arg_list) vprintf(format, arg_list)
-#define LOGE(...) printf(__VA_ARGS__)
+#define LOGD  LOGI
+#define vLOGD vLOGI
+#define LOGW  LOGI
+#define vLOGW vLOGI
+#define LOGE(...) fprintf(stderr, __VA_ARGS__)
 #define vLOGE(format, arg_list) vprintf(format, arg_list)
 #elif defined PLATFORM_ANDROID
 #include <android/log.h>
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "ObjectScanning", __VA_ARGS__))
-#define vLOGI(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_INFO, "ObjectScanning", format, arg_list))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "ObjectScanning", __VA_ARGS__))
-#define vLOGW(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_WARN, "ObjectScanning", format, arg_list))
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "ObjectScanning", __VA_ARGS__))
-#define vLOGD(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_DEBUG, "ObjectScanning", format, arg_list))
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "ObjectScanning", __VA_ARGS__))
-#define vLOGE(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_ERROR, "ObjectScanning", format, arg_list))
+#define TAG "TERE"
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__))
+#define vLOGI(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_INFO, TAG, format, arg_list))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__))
+#define vLOGW(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_WARN, TAG, format, arg_list))
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__))
+#define vLOGD(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_DEBUG, TAG, format, arg_list))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__))
+#define vLOGE(format, arg_list) ((void)__android_log_vprint(ANDROID_LOG_ERROR, TAG, format, arg_list))
 #endif
 
 #else
@@ -40,4 +41,4 @@
 
 #endif // ENABLE_LOG
 
-#endif
+#endif /* COMMON_LOG_H */

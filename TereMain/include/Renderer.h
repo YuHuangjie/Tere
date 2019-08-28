@@ -1,132 +1,112 @@
 #ifndef RENDERER_H
 #define RENDERER_H
-
-#include "common/Common.hpp"
-#if GL_WIN || GL_OSX
-#include <GL/glew.h>
-#elif GL_ES3_IOS
-#include <OpenGLES/ES3/gl.h>
-#include <OpenGLES/ES3/glext.h>
-#elif GL_ES3_ANDROID
-#include <GLES3/gl3.h>
-#include <GLES2/gl2ext.h>
-#endif
-
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-
 #include <vector>
 #include <string>
 #include <thread>
+#include <memory>
 
-#include "LightFieldAttrib.h"
+#include "glm/glm.hpp"
 #include "WeightedCamera.h"
+#include "GLHeader.h"
+#include "TereScene.h"
+#include "Const.h"
+
+#ifdef USE_CUDA
+#include "cuda_gl_interop.h"
+#endif
 
 using std::vector;
 using std::string;
-using glm::mat4;
-using glm::vec3;
-using glm::ivec4;
+using std::shared_ptr;
 
 class Renderer
 {
 public:
-	Renderer(const LightFieldAttrib &, const size_t fbw, const size_t fbh);
-	Renderer(const Renderer &) = delete;
-	Renderer& operator=(const Renderer &) = delete;
+	Renderer(shared_ptr<TereScene> scene);
 	~Renderer();
+
+	// Inform updated geometry in _scene
+	bool UpdatedGeometry();	
+
+	// Inform updated images in _scene
+	bool UpdatedLF();
 
 	// render method
 	int Render(const vector<int> &viewport);
-    
-    // Replace high resolution textures
-    void ReplaceHighTexture();
-
-	// render depth maps
-	GLuint AppendDepth(GLuint rgb, unsigned int width, 
-		unsigned int height, const mat4 &VP, const mat4 &V);
-
-	// set light field texture
-	void SetLightFieldTexs(const vector<GLuint> &lfTexs);
 
 	// Set interpolation cameras
 	void ClearInterpCameras();
 	bool AddInterpCameras(const WeightedCamera &camera);
 
 	// set virtual camera 
-	void SetVirtualCamera(const Camera &);
-
-	// indicate interaction is active
-	inline void UseHighTexture(bool flag) { useHighTexture = flag; }
+	void SetViewer(const glm::mat4 &M, const glm::mat4 &V, const glm::mat4 &P);
 
 private:
-	bool TransferMeshToGL(const string &meshFile);
-	bool TransferRefCameraToGL(const vector<mat4> &VP, const vector<mat4> V);
+	bool RefreshDepth();
 
-	int nMeshes;                      // number of objects
-	vector<size_t> indexSizes;   // index count in each object
+private:
+	enum {
+		FRAMEBUFFER_WIDTH = 1024,	// width of rendered texture
+		FRAME_BUFFER_HEIGHT = 1024,	// height of rendered texture
+		NUM_INTERP = MAX_NUM_INTERP,	// maximum interp camera counts
+	};
+
+	shared_ptr<TereScene> _scene;
+
+	GLuint _sceneShader;			// shader for multi-view rendering
+	GLuint _depthShader;			// shader for depth rendering
+
+	GLuint _VPTexture;				// view-proj mats are stored as texture
+	GLuint _VTexture;				// view mats are stored as texture
+
+	/* depth shader uniform locations */
+	GLint _dVPLct;					// view-proj matrix of render cam
+	GLint _dNearLct;				// near
+	GLint _dFarLct;					// far
+
+	/* scene shader uniform locations */
+	GLint _sNearLct;				// near 
+	GLint _sFarLct;					// far 
+	GLint _sNCamLct;				// number of reference cameras
+	GLuint _sVPLct;					// view-proj matrix of render cam
+	GLint _sVPRefLct;				// view-proj matices texture
+	GLint _sVRefLct;				// view matrices texture
+	GLint _sNInterpLct;				// number of interpolation cameras
+	GLint _sItpIdLct[NUM_INTERP];	// indices of interpolation cameras
+	GLint _sItpWtLct[NUM_INTERP];	// weights of interpolation cameras
+	GLint _sLFLct[NUM_INTERP];		// light field texture
+
+	glm::mat4 _model;				// model mat of render camera
+	glm::mat4 _view;				// view mat of render camera
+	glm::mat4 _proj;				// projection mat of render camera
+
+	vector<GLuint> _rgbTextures;	// each ref camera has a texture
+	vector<GLuint> _rgbdTextures;	// rgb texture + depth
+									
+	GLuint _fbo;					// scene's frame buffer
+	GLuint _dAttach;				// scene's depth attachment
+	GLuint _cAttach;				// scene's color attachment
+
+	GLuint _rgbdFbo;				// depth's frame buffer
+	GLuint _rgbdDAttach;			// depth's depth attachment
+
+	vector<size_t> indexSizes;		// index count in each object
 	
-	vector<GLuint> vertexArrays;			// VAO
-	vector<GLuint> vertexBuffers;          // VBO
-	vector<GLuint> elementBuffers;         // EBO
-	vector<GLuint> vColorBuffers;			// vertex color buffer
+	GLuint _VAO;					// VAO
+	GLuint _posBuffer;				// vertex position buffer
+	//GLuint _clrBuffer;			// vertex color buffer
+	GLuint _elmBuffer;				// element buffer
+	GLuint _PBO;					// PBO (for unpacking to texture)
 
-	// textures storing reference cameas' VP/V matrices
-	GLuint ref_cam_VP_texture;
-	GLuint ref_cam_V_texture;
+#ifdef USE_CUDA
+	cudaGraphicsResource* _cuPosBuffer;	// cuda resource bound on _posBuffer
+	cudaGraphicsResource* _cuElmBuffer;	// cuda resource bound on _elmBuffer
+	cudaGraphicsResource* _cuPBO;		// cuda resource bound on _PBO
+#endif
 
-	//
-    enum {
-        NUM_INTERP = 12,
-        NUM_HIGH_INTERP = 4,
-    };
+	bool _refreshDepth;				// require updating depth
 
-	GLuint scene_program_id;    // shader for multi-view rendering
-	GLuint depth_program_id;    // shader for depth rendering
-
-	// attrib/uniform location
-	GLint scene_VP_id;
-	GLint depth_VP_id;
-	int depth_near_location;
-	int depth_far_location;
-	int scene_near_location;
-	int scene_far_location;
-	int N_REF_CAMERAS_location;
-	int ref_cam_VP_location;
-	int ref_cam_V_location;
-	int nInterpsLocation;
-	int interpIndicesLocation[NUM_INTERP];
-	int interpWeightsLocation[NUM_INTERP];
-	int lightFieldLocation[NUM_INTERP];
-
-	mat4 Model;		// Model matrix
-	mat4 View;			// View matrix
-	mat4 Projection;	// Projection matrix
-
-	Camera virtual_camera;  // virtual_camera;
-
-	// frame buffer for depth appending to normal rgb texture
-	GLuint _rgbdFrameBuffer;
-	GLuint _rgbdDepthBuffer;
-
-	// frame buffer for rendering results
-	GLuint _finalFrameBuffer;
-	GLuint _finalRenderTex;
-	GLuint _finalDepthBuffer;
-
-	LightFieldAttrib attrib;  // light field attribute
-
-	vector<WeightedCamera> interpCameras;  // interpolating cameras
-	
-	// light field textures (typically low resolution)
-	vector<GLuint> lightFieldTexs;    
-	// light field textures (typically high resolution)
-	GLuint light_field_H[NUM_HIGH_INTERP];
-
-	// indicate using high or low resolution textures
-	bool useHighTexture;
+	vector<WeightedCamera> _interpCams;	// interpolation cameras
 };
 
-
-#endif
+#endif /* RENDERER_H */

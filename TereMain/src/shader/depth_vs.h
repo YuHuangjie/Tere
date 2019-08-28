@@ -1,11 +1,11 @@
 #ifndef DEPTH_VS_H
 #define DEPTH_VS_H
 
-#include "common/Common.hpp"
+#include "Platform.h"
 
-const char *depth_vertex_code =
-"//depv\n"
-#if PLATFORM_WIN || PLATFORM_OSX
+const char *DEPTH_VS =
+"//dpvs\n"
+#if defined PLATFORM_WIN || defined PLATFORM_OSX
 "#version 330 \n"
 #else
 "#version 300 es\n"

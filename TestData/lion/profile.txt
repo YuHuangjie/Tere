@@ -1,0 +1,20 @@
+camera_pose: extrinsics.txt
+
+camera_intrinsic: intrinsics.txt
+
+image_list: images.txt
+
+# one over 512 original faces
+
+obj: obj/object_1_over_512.obj
+
+
+
+N_REF_CAMERAS: 50
+
+
+mode: linear
+rows: 1
+
+# mode: arcball
+# mode: all

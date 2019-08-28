@@ -1,60 +1,54 @@
-#ifndef EXTRINSIC_H
-#define EXTRINSIC_H
+#ifndef EXTRINSIC_HPP
+#define EXTRINSIC_HPP
 
-#include <glm/glm.hpp>
-#include <stdexcept>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/matrix_access.hpp"
+#include "Type.h"
 
-class Extrinsic
+struct Extrinsic
 {
-public:
+	glm::mat4 viewMat;
+
 	Extrinsic()
-		: mInitialized(false)
 	{}
 
-	Extrinsic(const glm::vec3 &pos, const glm::vec3 &target, const glm::vec3 &up)
-		: mInitialized(true)
+	Extrinsic(const float pos[3], const float target[3], const float up[3])
 	{
-		const glm::vec3 dir = pos - target;
-		// Perpendiclar condition
-		if (glm::dot(dir, up) > 1e-5) {
-			throw std::invalid_argument("dir not perpendicular to up");
-			return;
-		}
+		glm::vec3 _pos(pos[0], pos[1], pos[2]);
+		glm::vec3 _target(target[0], target[1], target[2]);
+		glm::vec3 _up = glm::normalize(glm::vec3(up[0], up[1], up[2]));
 
-		mUp = glm::normalize(up);
-		mDir = glm::normalize(dir);
-		mRight = glm::cross(up, dir);
-		mPos = pos;
+		glm::vec3 _dir = glm::normalize(_pos - _target);
+		glm::vec3 _right = glm::cross(_up, _dir);
+		_up = glm::cross(_dir, _right);
+
+		viewMat = glm::lookAt(_pos, _target, _up);
 	}
 
-	inline bool IsInitialized() const { return mInitialized; }
-	inline glm::vec3 GetRight() const { return mRight; }
-	inline glm::vec3 GetUp() const { return mUp; }
-	inline glm::vec3 GetDir() const { return mDir; }
-	inline glm::vec3 GetPos() const { return mPos; }
+	Extrinsic(const float M[16], bool w2c, bool yIsUp)
+	{
+		glm::mat4 _M(glm::vec4(M[0], M[4], M[8], M[12]),
+			glm::vec4(M[1], M[5], M[9], M[13]),
+			glm::vec4(M[2], M[6], M[10], M[14]),
+			glm::vec4(M[3], M[7], M[11], M[15]));
 
-protected:	
-	bool mInitialized;
+		if (!w2c) {
+			_M = glm::inverse(_M);
+		}
 
-	/**
-	 * Right axis
-	 */
-	glm::vec3 mRight;
+		if (!yIsUp) {
+			_M[0].y = -_M[0].y; _M[1].y = -_M[1].y; _M[2].y = -_M[2].y; _M[3].y = -_M[3].y;
+			_M[0].z = -_M[0].z; _M[1].z = -_M[1].z; _M[2].z = -_M[2].z; _M[3].z = -_M[3].z;
+		}
 
-	/**
-	 * UP axis
-	 */
-	glm::vec3 mUp;
+		viewMat = _M;
+	}
 
-	/**
-	 * Direction (The reverse of the direction camera is pointing at)
-	 */
-	glm::vec3 mDir;
-
-	/**
-	 * Camera position
-	 */
-	glm::vec3 mPos;
+	glm::vec3 Right() const { return glm::row(viewMat, 0); }
+	glm::vec3 Up()    const { return glm::row(viewMat, 1); }
+	glm::vec3 Dir()   const { return glm::row(viewMat, 2); }
+	glm::vec3 Pos()   const { return glm::inverse(viewMat)[3]; }
 };
 
 #endif

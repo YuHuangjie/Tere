@@ -4,27 +4,72 @@
 #include <string>
 #include <memory>
 #include <queue>
-#include "LFLoader.h"
-#include "camera/Camera.hpp"
-#include "Renderer.h"
-#include "UserInterface.h"
-#include "UIType.h"
+#include <array>
 
+#include "camera/Camera.h"
+#include "Type.h"
+#include "Strategy.h"
+
+class Renderer;
 class TextureFuser;
 class Poster;
+class UserInterface;
+struct TereScene;
+
+using std::vector;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::array;
+using std::string;
 
 class LFEngineImpl
 {
 public:
-	typedef vector<size_t>(*IndexStrgFunc) (const vector<Camera> &ref,
-		const Camera &vir, const glm::vec3 &p, const size_t maxn);
-	typedef vector<float>(*WeighttStrgFunc) (const vector<Camera> &ref,
-		const Camera &vir, const glm::vec3 &p, const vector<size_t> &indices);
-
-	explicit LFEngineImpl(const string &profile);
-	LFEngineImpl(const LFEngineImpl &) = delete;
-	LFEngineImpl& operator=(const LFEngineImpl&) = delete;
+	explicit LFEngineImpl(const size_t nCams, const RENDER_MODE mode);
 	~LFEngineImpl(void);
+
+	/*****************************************************************************
+	 *			Scene Data
+	 ****************************************************************************/
+	// Set unindexed geometry (9 floats form a face)
+	bool SetGeometry(const float *v, const size_t szV, bool GPU = false);
+
+	// Set indexed geometry
+	bool SetGeometry(const float *v, const size_t szV, const int *f,
+		const size_t szF, bool GPU = false);
+
+	// Set image raw data directly
+	bool SetRefImage(const size_t id, const uint8_t *rgb, const size_t w,
+		const size_t h);
+
+	// Set image file name (in this case, image decoding function must be 
+	// registered)
+	bool SetRefImage(const size_t id, const string &filename,
+		const float zoom = 1.f);
+
+	// Set camera parameters
+	bool SetCamera(const size_t id, const array<float, 9> &K, 
+		const array<float, 16> &M, bool w2c, bool yIsUp);
+
+	// Register image decoding function
+	void RegisterDecFunc(const DecHeaderFunc, const DecImageFunc);
+
+	/*****************************************************************************
+	 *			Scene Setting
+	 ****************************************************************************/
+	// ONLY in 'linear' mode. Set how many rows of cameras are there in the scene.
+	void SetRows(const size_t rows);
+
+	// Inform Tere that data is initialized
+	bool HaveSetScene();
+
+	// Inform Tere that data is updated
+	bool HaveUpdatedScene();
+
+	/*****************************************************************************
+	 *			Others
+	 ****************************************************************************/
+	// TODO: Other setting funcs in the case of LINEAR and SPHERE mode.
 
 	// Draw one frame
 	void Draw(void);
@@ -32,92 +77,88 @@ public:
 	// Set up an background thread for counting fps
 	void StartFPSThread(void);
 
-	// Change view port size
+	// Set view port size
 	void Resize(uint32_t width, uint32_t height);
 
-	// 
-	void SetUI(UIType type, double sx, double sy);
+	// Allow client to interact with the scene
+	void SetUI(UIType type, float sx, float sy);
 
 	// Set rendering camera to one of the reference cameras 
 	// specified by 'id'
 	void SetLocationOfReferenceCamera(int id);
 
-	// Zoom in(out). This function simply move rendering camera 
-	// along lookat direction. If zoom_scale<1, move along negative
-	// lookat direction, otherwise, positive 
+	// Zoom in(out). This function changes the FoV of rendering camera.
+	// zoom_scale is restricted to be between [0.1, 10]. 
+	// Return the actual zooming scale.
 	float SetZoomScale(float zoom_scale);
 
 	// Get FPS (frames drawn in previous second)
-	inline int GetFPS(void) { return fps; }
+	float GetFPS(void) const { return _fps; }
 
 	// Extract a subregion of current frame buffer. 
 	// x and y specifies the lower left corner of this region, 
 	// width and height specifies the dimension of this region
-	bool GetScreenShot(unsigned char *buffer, int x, int y, int width, int height);
+	bool GetScreenShot(unsigned char *buffer, int x, int y, int width, int height) const;
 
 	// set background color
 	bool SetBackground(float r, float g, float b);
 	// set background image
 	bool SetBackground(const string &imagePath);
-    
-    // set screen framebuffer
-    void SetScreenFBO(unsigned int fbo);
-	
+
+	// set screen framebuffer (default is 0)
+	void SetScreenFBO(unsigned int fbo);
+
 private:
-	enum Mode
-	{
-		FIX,		// Fix virtual camera as ref camera and disable interpolation
-		INTERP		// Interpolation strategy
-	};
-	Mode _mode;			// select rendering mode
-	size_t _fixRef;	// in FIX mode, select which ref camera to imitate
-
 	void _Draw(void);
-
-	// Initialization rendering engine given profile
-	void InitEngine(const string &profile);
 
 	// Background thread for FPS counting
 	void VRFPS(void);
+	
+	// A slot is an internal rendering camera which the client cannot control.
+	// The purpose of slots is to acheive smooth rendering effects during the 
+	// perioud when rendering camera is moving to the closest reference camera.
+	void EnqueueSlots(const Extrinsic &start, const Extrinsic &end);
 
-	vector<int> _screenViewport;   // screen rendering viewport size
-	vector<int> _offlineViewport;	// offline rendering viewport
+private:
+	enum InterpMode
+	{
+		// Set rendering camera to any ref cameras and disable interpolation
+		FIX,
+		// Use interpolation
+		INTERP
+	} _mode;
 
-	// Used for loading light field data(images, parameters...)
-	unique_ptr<LFLoader> gLFLoader;
+	shared_ptr<TereScene> _scene;		// describe the scene setting and data
+	
+	DecHeaderFunc fdh;						// image header decoding function
+	DecImageFunc fdi;						// image decoding function
 
-	// TERE renderer
-	unique_ptr<Renderer> gRenderer;
+	unique_ptr<Renderer> _renderer;			// TERE scene renderer
+	unique_ptr<TextureFuser> _textureFuser;	// background fuser
+	unique_ptr<Poster> _poster;				// render to screen
 
-	// texture blender
-	unique_ptr<TextureFuser> _textureFuser;
+	Camera _renderCam;						// rendering camera
 
-	// render to screen
-	unique_ptr<Poster> _poster;
+	float _stdFx, _stdFy;					// focal length on initialization
 
-	// Rendering camera object
-	Camera _renderCam;
-    // focal length on initialization, used for zooming function
-    float _stdFx, _stdFy;
+	unique_ptr<UserInterface> _UI;			// user interaction
 
-	int fps;    // frames per second
-	int frames; // frames drawn
+	size_t _fixRef;			// in FIX mode, select which ref camera to render
 
-	UserInterface *ui;   // Used for user interaction
+	vector<int> _screenViewport;			// poster's viewport
+	vector<int> _offlineViewport;			// scene and fuser' viewport
+
+	float _fps;								// rendering fps
+	int _frames;							// frames drawn
 
 	// strategy for searching interpolation cameras
-	IndexStrgFunc _indexStrgFunc;
+	shared_ptr<SearchStrategy> _schStrg;
 	// strategy for weighing interpolation cameras
-	WeighttStrgFunc _weightStrgFunc;
+	shared_ptr<WeighStrategy> _wghStrg;
 
-	bool _lockUp;	// refuse rendering and interaction requests
-	std::deque<Camera> _gradientQueue;	// store smoothing cameras
-	float _gradientsPerNorm;			
-	void ComputeGradientsPerNorm();
-	void EnqueueGradients(const Camera &start, const Camera &end);
+	bool _locked;							// Tere is rendering internal slots
+	float _SLOT_MULTIPLIER;					// slot multiplier
+	std::deque<Extrinsic> _slotQueue;		// slots queue
 };
 
-/* Estimate distance between adjacent two cameras. */
-float AverageNorm(const vector<Camera>&);
-
-#endif
+#endif /* LFENGINEIMPL_H */

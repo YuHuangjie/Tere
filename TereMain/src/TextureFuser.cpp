@@ -1,21 +1,11 @@
 #include <stdexcept>
 
-#include "common/Common.hpp"
-#if GL_WIN || GL_OSX
-#include <GL/glew.h>
-#elif GL_ES3_IOS
-#include <OpenGLES/ES3/gl.h>
-#include <OpenGLES/ES3/glext.h>
-#elif GL_ES3_ANDROID
-#include <GLES3/gl3.h>
-#include <GLES2/gl2ext.h>
-#endif
-
 #include "TextureFuser.h"
+#include "GLHeader.h"
 #include "RenderUtils.h"
 #include "shader/fuser_vs.h"
 #include "shader/fuser_frag.h"
-#include "common/Log.hpp"
+#include "Error.h"
 
 using std::runtime_error;
 
@@ -47,11 +37,11 @@ TextureFuser::TextureFuser(const size_t fbw, const size_t fbh,
 
 	// after initialization, check consistency
 	if (!IsConsistent()) {
-		throw runtime_error("TextureFuser is inconsistent");
+		THROW_ON_ERROR("TextureFuser is inconsistent");
 	}
 }
 
-TextureFuser::TextureFuser(const size_t fbw, const size_t fbh, const Image& bg)
+TextureFuser::TextureFuser(const size_t fbw, const size_t fbh, const Image &I)
 	: _monochromatic(false),
 	_bgTexture(0),
 	_bgR(0.f),
@@ -77,13 +67,13 @@ TextureFuser::TextureFuser(const size_t fbw, const size_t fbh, const Image& bg)
 	Init();
 
 	// set background texture
-	if (!SetBackground(bg)) {
-		throw runtime_error("TextureFuser set background image failed");
+	if (!SetBackground(I)) {
+		THROW_ON_ERROR("TextureFuser set background image failed");
 	}
 
 	// after initialization, check consistency
 	if (!IsConsistent()) {
-		throw runtime_error("TextureFuser is inconsistent");
+		THROW_ON_ERROR("TextureFuser is inconsistent");
 	}
 }
 
@@ -102,8 +92,7 @@ TextureFuser::~TextureFuser()
 int TextureFuser::Render(const vector<int> &viewport) const
 {
 	if (!IsConsistent()) {
-		LOGE("TextureFuser: Abort rendering due to inconsistency\n");
-		return -1;
+		RETURN_ON_ERROR("TextureFuser: Abort rendering due to inconsistency\n");
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
@@ -243,7 +232,7 @@ bool TextureFuser::IsConsistent() const
 	return true;
 }
 
-bool TextureFuser::SetForeground(unsigned int fgTex)
+bool TextureFuser::SetForeground(const unsigned int fgTex)
 {
 	if (fgTex <= 0) {
 		return false;
@@ -253,7 +242,7 @@ bool TextureFuser::SetForeground(unsigned int fgTex)
 	return true;
 }
 
-bool TextureFuser::SetBackground(float r, float g, float b)
+bool TextureFuser::SetBackground(const float r, const float g, const float b)
 {
 	_bgR = r;
 	_bgG = g;
@@ -266,9 +255,9 @@ bool TextureFuser::SetBackground(float r, float g, float b)
 	return true;
 }
 
-bool TextureFuser::SetBackground(const Image &image)
+bool TextureFuser::SetBackground(const Image &I)
 {
-	unsigned int tex = GetTextureFromImage(image);
+	unsigned int tex = GetTextureFromImage(I.data.get(), I.width, I.height, I.chn);
 
 	if (tex == 0) {
 		return false;
