@@ -271,7 +271,12 @@ void LFEngineImpl::EnqueueGradients(const Camera &start, const Camera &end)
 
 void LFEngineImpl::ComputeGradientsPerNorm()
 {
-	const float HARD_CODED_INTERVAL = 15.f;
+    float HARD_CODED_INTERVAL = 15.f;
+    if (fps != 0) { 
+        /* Smoothing effect doesn't take more than 0.1 second. */
+        HARD_CODED_INTERVAL = fps * 0.1; 
+    }
+
 	_gradientsPerNorm = HARD_CODED_INTERVAL / 
 		AverageNorm(gLFLoader->GetLightFieldAttrib().ref_cameras);
 }

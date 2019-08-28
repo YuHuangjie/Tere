@@ -117,6 +117,7 @@ private:
 	void EnqueueGradients(const Camera &start, const Camera &end);
 };
 
+/* Estimate distance between adjacent two cameras. */
 float AverageNorm(const vector<Camera>&);
 
 #endif
