@@ -110,6 +110,11 @@ bool LFEngine::SetBackground(const string &imagePath)
 	return _pImpl->SetBackground(imagePath);
 }
 
+bool LFEngine::SetBackground(const uint8_t *bg, const int width, const int height)
+{
+	return _pImpl->SetBackground(bg, width, height);
+}
+
 void LFEngine::SetScreenFBO(unsigned int fbo)
 {
     _pImpl->SetScreenFBO(fbo);

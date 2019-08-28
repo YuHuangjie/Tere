@@ -104,6 +104,7 @@ public:
 	bool SetBackground(float r, float g, float b);
 	// set background image
 	bool SetBackground(const string &imagePath);
+	bool SetBackground(const uint8_t *bg, const int width, const int height);
 
 	// set screen framebuffer (default is 0)
 	void SetScreenFBO(unsigned int fbo);

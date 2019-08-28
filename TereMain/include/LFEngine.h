@@ -98,6 +98,7 @@ public:
 	EXPORT bool SetBackground(float r, float g, float b);
 	// set background image
 	EXPORT bool SetBackground(const string &imagePath);
+	EXPORT bool SetBackground(const uint8_t *bg, const int width, const int height);
     
     // set screen framebuffer (default is 0)
 	EXPORT void SetScreenFBO(unsigned int fbo);

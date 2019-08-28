@@ -525,6 +525,22 @@ bool LFEngineImpl::SetBackground(const string &imagePath)
 	return true;
 }
 
+bool LFEngineImpl::SetBackground(const uint8_t *bg, const int width, const int height)
+{
+	if (!_textureFuser) {
+		RETURN_ON_ERROR("texture fuser is NULL");
+	}
+
+	shared_ptr<uint8_t> image(new uint8_t[width*height * 3]);
+	std::memcpy(image.get(), bg, width * height * 3);
+
+	if (!_textureFuser->SetBackground(Image(image, width, height, 3))) {
+		RETURN_ON_ERROR("Set background failed");
+	}
+
+	return true;
+}
+
 void LFEngineImpl::SetScreenFBO(unsigned int fbo)
 {
     if (_poster) { _poster->SetScreenFBO(fbo); }
