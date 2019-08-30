@@ -41,8 +41,6 @@ const char *DEPTH_FS =
 "	tex_coord.y = 1.f - tex_coord.y;	\n"
 "	vec4 rgba = texture(RGBA, tex_coord).rgba;	\n"
 "	color = vec4(rgba.rgb, depth);\n"
-	// encode alpha
-"	color.r = float((int(color.r * 255.0)&0xFC) | (int(rgba.a * 255.0)>>6)) / 255.0;\n"
 "}\n";
 
 #endif

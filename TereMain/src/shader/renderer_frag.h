@@ -101,7 +101,6 @@ STR_MAX_NUM_INTERP(MAX_NUM_INTERP)"()\n"
 "	float	total_weight	= 0.0;\n"
 "   float	weight			= 0.0f;    \n"
 "   vec2	tex_coord		= vec2(0.0);  \n"
-"	float	pixel_alpha		= 0.f; \n"
 "	color					= vec4(0.0);      \n"
 "	vec4[MAX_NUM_INTERP] pixels;	\n"
 
@@ -113,12 +112,9 @@ STR_MAX_NUM_INTERP(MAX_NUM_INTERP)"()\n"
 "		float _EPS = EPS * (1.f + float(i / 3));	\n"	// increment EPS gradually
 "       weight = interpWeights[i]; \n"
 "		weight *= float(DepthTest(pixels[i].w, depthNoOccul[i], _EPS));	\n"	// false is 0
-//   alpha consumes 2 least significant bits in red channel
-"		pixel_alpha = float((int(pixels[i].r * 255.0) & 0xC0) >> 6) / 3.f;	\n"
-"       pixels[i].r = float((int(pixels[i].r * 255.0) & 0x3F) << 2) / 255.0f;   \n"
 "		total_weight += weight; \n"
-"		color.rgb += weight * pixels[i].rgb * pixel_alpha;  \n"
-"		color.a += weight * pixel_alpha;	\n"
+"		color.rgb += weight * pixels[i].rgb;  \n"
+"		color.a += weight;	\n"
 "	}\n"
 
 // normalize final color or assign vertex(missing) color if the sum of weights
