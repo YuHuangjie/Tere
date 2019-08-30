@@ -226,7 +226,7 @@ bool TereScene::Configure()
 	FindBBCenterAndRadius(v, szV, center, boxRadius);
 	radius = CalcCameraRadius(extrins, center);
 	glnear = radius - boxRadius;
-	glnear = std::max<float>(glnear, 0.01f);
+	glnear = 0.01f;
 	glfar = radius + boxRadius;
 
 	return true;
