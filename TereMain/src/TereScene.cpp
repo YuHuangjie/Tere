@@ -199,6 +199,19 @@ static float CalcCameraRadius(const vector<Extrinsic> &extrins, const glm::vec3 
 	return distAdds / extrins.size();
 }
 
+static void CalcCameraToCenter(const vector<Extrinsic> &extrins, const glm::vec3 &center,
+	float &near, float &far)
+{
+	near = FLT_MAX;
+	far = FLT_MIN;
+
+	for (size_t i = 0; i < extrins.size(); ++i) {
+		float len = glm::length(center - extrins[i].Pos());
+		near = near > len ? len : near;
+		far = far < len ? len : far;
+	}
+}
+
 bool TereScene::Configure()
 {
 	/* Check validity of all variables */
@@ -222,12 +235,13 @@ bool TereScene::Configure()
 
 	// Calculate mesh bounding box and near/far range
 	float boxRadius = 0.f;
+	float n, f;
 		
 	FindBBCenterAndRadius(v, szV, center, boxRadius);
 	radius = CalcCameraRadius(extrins, center);
-	glnear = radius - boxRadius;
-	glnear = 0.01f;
-	glfar = radius + boxRadius;
+	CalcCameraToCenter(extrins, center, n, f);
+	glnear = std::max(0.01f, n - boxRadius);
+	glfar = f + boxRadius;
 
 	return true;
 }
