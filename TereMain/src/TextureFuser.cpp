@@ -186,6 +186,9 @@ void TextureFuser::Init()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
 		(void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 bool TextureFuser::IsConsistent() const
