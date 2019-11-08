@@ -287,6 +287,7 @@ bool Renderer::UpdatedLF()
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _scene->width, _scene->height,
 			GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
 #else
 	assert(!_scene->GPU);

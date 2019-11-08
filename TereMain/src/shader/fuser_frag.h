@@ -29,7 +29,7 @@ const char *fuser_frag_code =
 "void main()			\n"
 "{						\n"
 "	vec4 _fgColor = texture(fgTexture, vTexCoord);	\n"
-"   vec4 _bgColor = ( monochromatic ? vec4(bgR, bgG, bgB, 1.0f) : texture(bgTexture, vTexCoord) );   \n"
+"   vec4 _bgColor = ( monochromatic ? vec4(bgR, bgG, bgB, 1.0f) : texture(bgTexture, vec2(vTexCoord.x, 1.f-vTexCoord.y)) );   \n"
 "	fColor = mix(_bgColor, _fgColor, _fgColor.a);	\n"
 "}						\n";
 
