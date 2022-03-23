@@ -119,7 +119,6 @@ int main(int argc, char **argv)
 	try {
 		string profileFile(argv[1]);
 		Profile profile = ReadProfile(profileFile);
-		profile.mode = RENDER_MODE::LINEAR;
 
 		// initialize OpenGL
 		InitGLContext(WINDOW_WIDTH, WINDOW_HEIGHT);
