@@ -228,7 +228,6 @@ bool TereScene::Configure()
 
 	// trivial tests
 	for (auto intrin : intrins) TEST(abs(intrin.cx) > 1e-5);		
-	for (auto extrin : extrins) TEST(abs(extrin.Right()[0]) > 1e-5);
 
 	for (auto rgb : rgbs) TEST(rgb);
 	TEST(width > 0 && height > 0);
